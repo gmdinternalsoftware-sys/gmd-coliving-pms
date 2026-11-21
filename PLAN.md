@@ -172,7 +172,7 @@ create table audit_log (
 **RLS pattern:** `select` for any active profile; `insert/update/delete` gated by a helper `current_role()`. Aadhaar reveal and "add existing tenant" run as server-side functions that check role and write `audit_log`.
 
 ## 5. Phases (checklist)
-- [ ] **Phase 0** Foundation: repo, Supabase, schema, auth, roles, `.env.example`, layout shell
+- [x] **Phase 0** Foundation: repo, Supabase, schema, auth, roles, `.env.example`, layout shell
 - [ ] **Phase 1** Admin and inventory: create employees, flats/rooms/beds, bed inventory view with filters
 - [ ] **Phase 2** Existing tenants (Admin only): add form, Excel/CSV bulk import with validation, incomplete-profile filter, admin manual edit
 - [ ] **Phase 3** Client profiles: searchable list, profile page (flat/bed, rent paid, phones, photo, masked Aadhaar), photo upload
