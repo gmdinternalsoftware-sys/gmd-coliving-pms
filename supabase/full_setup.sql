@@ -177,17 +177,21 @@ create table if not exists audit_log (
 );
 
 -- 4. HELPER FUNCTIONS
-create or replace function get_my_role()
-returns app_role language sql stable security definer as $$
-  select role from profiles where id = auth.uid() and is_active = true;
+create or replace function public.get_my_role()
+returns public.app_role language sql stable security definer
+set search_path = public, auth
+as $$
+  select role from public.profiles where id = auth.uid() and is_active = true;
 $$;
 
-create or replace function is_active_profile()
-returns boolean language sql stable security definer as $$
-  select exists(select 1 from profiles where id = auth.uid() and is_active = true);
+create or replace function public.is_active_profile()
+returns boolean language sql stable security definer
+set search_path = public, auth
+as $$
+  select exists(select 1 from public.profiles where id = auth.uid() and is_active = true);
 $$;
 
-create or replace function update_updated_at()
+create or replace function public.update_updated_at()
 returns trigger language plpgsql as $$
 begin
   new.updated_at = now();
@@ -218,18 +222,20 @@ drop trigger if exists trg_noc_records_updated_at on noc_records;
 create trigger trg_noc_records_updated_at before update on noc_records for each row execute function update_updated_at();
 
 -- 6. AUTOMATED USER REGISTRATION TRIGGER
-create or replace function handle_new_user()
-returns trigger language plpgsql security definer as $$
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer
+set search_path = public, auth
+as $$
 declare
   user_full_name text;
-  user_role app_role;
+  user_role public.app_role;
 begin
   user_full_name := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
   -- If first user ever, make admin; otherwise default to metadata or sales
   if not exists (select 1 from public.profiles limit 1) then
-    user_role := 'admin'::app_role;
+    user_role := 'admin'::public.app_role;
   else
-    user_role := coalesce((new.raw_user_meta_data->>'role')::app_role, 'sales'::app_role);
+    user_role := coalesce((new.raw_user_meta_data->>'role')::public.app_role, 'sales'::public.app_role);
   end if;
 
   insert into public.profiles (id, full_name, email, role, is_active)
@@ -247,22 +253,24 @@ $$;
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute function handle_new_user();
+  for each row execute function public.handle_new_user();
 
 -- 7. AUDIT TRIGGER
-create or replace function audit_trigger_func()
-returns trigger language plpgsql security definer as $$
+create or replace function public.audit_trigger_func()
+returns trigger language plpgsql security definer
+set search_path = public, auth
+as $$
 begin
   if (tg_op = 'INSERT') then
-    insert into audit_log(actor_id, action, table_name, record_id, new_data)
+    insert into public.audit_log(actor_id, action, table_name, record_id, new_data)
     values (auth.uid(), 'insert', tg_table_name, new.id, to_jsonb(new));
     return new;
   elsif (tg_op = 'UPDATE') then
-    insert into audit_log(actor_id, action, table_name, record_id, old_data, new_data)
+    insert into public.audit_log(actor_id, action, table_name, record_id, old_data, new_data)
     values (auth.uid(), 'update', tg_table_name, new.id, to_jsonb(old), to_jsonb(new));
     return new;
   elsif (tg_op = 'DELETE') then
-    insert into audit_log(actor_id, action, table_name, record_id, old_data)
+    insert into public.audit_log(actor_id, action, table_name, record_id, old_data)
     values (auth.uid(), 'delete', tg_table_name, old.id, to_jsonb(old));
     return old;
   end if;

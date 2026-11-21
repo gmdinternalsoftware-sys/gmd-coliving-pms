@@ -3,17 +3,23 @@
 -- =============================================================================
 
 -- 1. Automated trigger on auth.users to create profiles on signup/admin-create
-create or replace function handle_new_user()
+create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
+set search_path = public, auth
 as $$
 declare
   user_full_name text;
-  user_role app_role;
+  user_role public.app_role;
 begin
   user_full_name := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
-  user_role := coalesce((new.raw_user_meta_data->>'role')::app_role, 'sales'::app_role);
+
+  if not exists (select 1 from public.profiles limit 1) then
+    user_role := 'admin'::public.app_role;
+  else
+    user_role := coalesce((new.raw_user_meta_data->>'role')::public.app_role, 'sales'::public.app_role);
+  end if;
 
   insert into public.profiles (id, full_name, email, role, is_active)
   values (new.id, user_full_name, new.email, user_role, true)
@@ -31,7 +37,7 @@ $$;
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute function handle_new_user();
+  for each row execute function public.handle_new_user();
 
 -- 2. Bed Inventory View with tenant details (security_invoker = true enforces RLS)
 create or replace view v_bed_inventory

@@ -7,29 +7,32 @@
 -- =============================================================================
 
 -- Get the current user's role (avoids clash with built-in current_role)
-create or replace function get_my_role()
-returns app_role
+create or replace function public.get_my_role()
+returns public.app_role
 language sql
 stable
 security definer
+set search_path = public, auth
 as $$
-  select role from profiles where id = auth.uid() and is_active = true;
+  select role from public.profiles where id = auth.uid() and is_active = true;
 $$;
 
 -- Check if the current user is active
-create or replace function is_active_profile()
+create or replace function public.is_active_profile()
 returns boolean
 language sql
 stable
 security definer
+set search_path = public, auth
 as $$
-  select exists(select 1 from profiles where id = auth.uid() and is_active = true);
+  select exists(select 1 from public.profiles where id = auth.uid() and is_active = true);
 $$;
 
 -- Auto-update updated_at timestamp
-create or replace function update_updated_at()
+create or replace function public.update_updated_at()
 returns trigger
 language plpgsql
+set search_path = public, auth
 as $$
 begin
   new.updated_at = now();
@@ -42,46 +45,47 @@ $$;
 -- =============================================================================
 
 create trigger trg_profiles_updated_at before update on profiles
-  for each row execute function update_updated_at();
+  for each row execute function public.update_updated_at();
 
 create trigger trg_flats_updated_at before update on flats
-  for each row execute function update_updated_at();
+  for each row execute function public.update_updated_at();
 
 create trigger trg_rooms_updated_at before update on rooms
-  for each row execute function update_updated_at();
+  for each row execute function public.update_updated_at();
 
 create trigger trg_beds_updated_at before update on beds
-  for each row execute function update_updated_at();
+  for each row execute function public.update_updated_at();
 
 create trigger trg_clients_updated_at before update on clients
-  for each row execute function update_updated_at();
+  for each row execute function public.update_updated_at();
 
 create trigger trg_bookings_updated_at before update on bookings
-  for each row execute function update_updated_at();
+  for each row execute function public.update_updated_at();
 
 create trigger trg_noc_records_updated_at before update on noc_records
-  for each row execute function update_updated_at();
+  for each row execute function public.update_updated_at();
 
 -- =============================================================================
 -- AUDIT TRIGGER
 -- =============================================================================
 
-create or replace function audit_trigger_func()
+create or replace function public.audit_trigger_func()
 returns trigger
 language plpgsql
 security definer
+set search_path = public, auth
 as $$
 begin
   if (tg_op = 'INSERT') then
-    insert into audit_log(actor_id, action, table_name, record_id, new_data)
+    insert into public.audit_log(actor_id, action, table_name, record_id, new_data)
     values (auth.uid(), 'insert', tg_table_name, new.id, to_jsonb(new));
     return new;
   elsif (tg_op = 'UPDATE') then
-    insert into audit_log(actor_id, action, table_name, record_id, old_data, new_data)
+    insert into public.audit_log(actor_id, action, table_name, record_id, old_data, new_data)
     values (auth.uid(), 'update', tg_table_name, new.id, to_jsonb(old), to_jsonb(new));
     return new;
   elsif (tg_op = 'DELETE') then
-    insert into audit_log(actor_id, action, table_name, record_id, old_data)
+    insert into public.audit_log(actor_id, action, table_name, record_id, old_data)
     values (auth.uid(), 'delete', tg_table_name, old.id, to_jsonb(old));
     return old;
   end if;
