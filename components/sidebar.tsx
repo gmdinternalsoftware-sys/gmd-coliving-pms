@@ -18,6 +18,8 @@ import {
   Menu,
   X,
   UserPlus,
+  UserCheck,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface NavItem {
@@ -31,6 +33,18 @@ const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Bed Inventory", href: "/dashboard/beds", icon: BedDouble },
   { label: "Clients", href: "/dashboard/clients", icon: Users },
+  {
+    label: "Add Tenant",
+    href: "/dashboard/tenants/add",
+    icon: UserCheck,
+    roles: ["admin"],
+  },
+  {
+    label: "Bulk Import",
+    href: "/dashboard/tenants/import",
+    icon: FileSpreadsheet,
+    roles: ["admin"],
+  },
   { label: "Tokens", href: "/dashboard/tokens", icon: Ticket },
   { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
   { label: "Electricity", href: "/dashboard/electricity", icon: Zap },

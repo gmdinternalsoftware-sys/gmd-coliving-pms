@@ -174,7 +174,7 @@ create table audit_log (
 ## 5. Phases (checklist)
 - [x] **Phase 0** Foundation: repo, Supabase, schema, auth, roles, `.env.example`, layout shell
 - [x] **Phase 1** Admin and inventory: create employees, flats/rooms/beds, bed inventory view with filters
-- [ ] **Phase 2** Existing tenants (Admin only): add form, Excel/CSV bulk import with validation, incomplete-profile filter, admin manual edit
+- [x] **Phase 2** Existing tenants (Admin only): add form, Excel/CSV bulk import with validation, incomplete-profile filter, admin manual edit
 - [ ] **Phase 3** Client profiles: searchable list, profile page (flat/bed, rent paid, phones, photo, masked Aadhaar), photo upload
 - [ ] **Phase 4** Token workflow: sales token form, NOC queue, Accounts collection and move-in, status badges, "everyone can view" token list
 - [ ] **Phase 5** Payments and dues: monthly rent generation, pending/overdue list, receipts (PDF), deposit refund on move-out

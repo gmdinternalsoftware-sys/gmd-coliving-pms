@@ -84,3 +84,68 @@ export const bedSchema = z.object({
 
 export type BedInput = z.infer<typeof bedSchema>;
 
+// =============================================================================
+// PHASE 2: EXISTING TENANTS & CLIENTS
+// =============================================================================
+
+export const existingTenantSchema = z.object({
+  full_name: z.string().min(2, "Client name must be at least 2 characters"),
+  aadhaar: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{12}$/.test(val), {
+      message: "Aadhaar number must be exactly 12 numeric digits",
+    }),
+  phone1: indianPhoneSchema,
+  phone2: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: "Secondary phone must be exactly 10 digits",
+    }),
+  emergency_contact_name: z.string().trim().optional(),
+  emergency_contact_phone: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: "Emergency contact phone must be exactly 10 digits",
+    }),
+  photo_path: z.string().optional(),
+  bed_id: z.string().uuid("Please select a valid vacant bed"),
+  move_in_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid move-in date"),
+  agreed_rent: z.coerce.number().min(0, "Agreed rent must be positive"),
+  deposit_amount: z.coerce.number().min(0, "Deposit must be 0 or positive"),
+  next_rent_due: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid next rent due date"),
+  opening_dues: z.coerce.number().min(0, "Opening dues must be 0 or positive").default(0),
+});
+
+export type ExistingTenantInput = z.infer<typeof existingTenantSchema>;
+
+// Client Manual Correction Schema (Admin only)
+export const clientCorrectionSchema = z.object({
+  id: z.string().uuid(),
+  full_name: z.string().min(2, "Full name must be at least 2 characters"),
+  phone1: indianPhoneSchema,
+  phone2: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: "Secondary phone must be 10 digits",
+    }),
+  emergency_contact_name: z.string().trim().optional(),
+  emergency_contact_phone: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: "Emergency phone must be 10 digits",
+    }),
+});
+
+export type ClientCorrectionInput = z.infer<typeof clientCorrectionSchema>;
+
+
