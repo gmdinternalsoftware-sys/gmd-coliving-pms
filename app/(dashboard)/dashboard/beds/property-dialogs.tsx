@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Flat, Room, Bed, BedStatus } from "@/lib/types/database";
 import {
   createFlatAction,
@@ -55,6 +55,15 @@ export function PropertyDialogs({
   const [editBedStatus, setEditBedStatus] = useState<BedStatus>(
     editingBed?.status || "vacant"
   );
+
+  // Sync form values whenever a bed is selected for editing
+  useEffect(() => {
+    if (editingBed) {
+      setEditBedLabel(editingBed.bed_label);
+      setEditBedPrice(editingBed.base_price);
+      setEditBedStatus(editingBed.status);
+    }
+  }, [editingBed]);
 
   async function handleCreateFlat(e: React.FormEvent) {
     e.preventDefault();

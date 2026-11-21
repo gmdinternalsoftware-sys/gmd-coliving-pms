@@ -386,6 +386,7 @@ export function InventoryView({
 
       {/* Property & Bed Management Dialogs */}
       <PropertyDialogs
+        key={editingBed ? `edit-${editingBed.id}` : activeDialog || "none"}
         flats={flats}
         rooms={rooms}
         onSuccess={() => window.location.reload()}
