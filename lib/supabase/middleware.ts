@@ -1,7 +1,34 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDemoMode } from "@/lib/auth/demo-auth";
 
 export async function updateSession(request: NextRequest) {
+  // Public routes that don't require auth
+  const publicPaths = ["/login", "/auth/demo"];
+  const isPublicPath = publicPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  // In Demo Mode (before Supabase is configured), use cookie-based demo session
+  if (isDemoMode()) {
+    const demoUserCookie = request.cookies.get("gmd_demo_user");
+    const hasDemoUser = !!demoUserCookie?.value;
+
+    if (!hasDemoUser && !isPublicPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
+    if (hasDemoUser && isPublicPath && request.nextUrl.pathname === "/login") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -39,12 +66,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  // Public routes that don't require auth
-  const publicPaths = ["/login"];
-  const isPublicPath = publicPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
 
   if (!user && !isPublicPath) {
     // Not logged in, redirect to login

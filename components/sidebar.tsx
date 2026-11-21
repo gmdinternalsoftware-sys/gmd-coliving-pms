@@ -63,6 +63,9 @@ export function Sidebar({ profile }: SidebarProps) {
   );
 
   async function handleLogout() {
+    try {
+      await fetch("/auth/demo", { method: "DELETE" });
+    } catch {}
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
