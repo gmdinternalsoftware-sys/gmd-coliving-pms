@@ -96,3 +96,20 @@ export interface Payment {
   notes: string | null;
   created_at: string;
 }
+
+export interface InventoryBedItem {
+  id: string;
+  bed_label: string;
+  base_price: number;
+  status: BedStatus;
+  room_id: string;
+  room_no: string;
+  sharing_type: number;
+  flat_id: string;
+  flat_name: string;
+  flat_address: string | null;
+  tenant_name: string | null;
+  tenant_phone: string | null;
+  booking_status: BookingStatus | null;
+}
+
