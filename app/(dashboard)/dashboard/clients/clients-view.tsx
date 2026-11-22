@@ -18,6 +18,7 @@ import {
   BedDouble,
   UserCheck,
 } from "lucide-react";
+import Link from "next/link";
 
 export interface ClientWithBooking extends Client {
   flat_name?: string | null;
@@ -222,18 +223,19 @@ export function ClientsView({ initialClients, isAdmin }: ClientsViewProps) {
                   <th className="px-5 py-3">Aadhaar (Last 4)</th>
                   <th className="px-5 py-3">Profile Status</th>
                   <th className="px-5 py-3">Onboarded</th>
-                  {isAdmin && (
-                    <th className="px-5 py-3 text-right">Actions</th>
-                  )}
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {filteredClients.map((client) => (
                   <tr key={client.id} className="hover:bg-muted/20">
                     <td className="px-5 py-3.5">
-                      <div className="font-semibold text-sm text-foreground">
+                      <Link
+                        href={`/dashboard/clients/${client.id}`}
+                        className="font-semibold text-sm text-foreground hover:text-primary hover:underline transition-colors block"
+                      >
                         {client.full_name}
-                      </div>
+                      </Link>
                       {client.emergency_contact_name && (
                         <div className="text-[11px] text-muted-foreground">
                           Emg: {client.emergency_contact_name} (
@@ -303,16 +305,22 @@ export function ClientsView({ initialClients, isAdmin }: ClientsViewProps) {
                       {formatDateIST(client.created_at)}
                     </td>
 
-                    {isAdmin && (
-                      <td className="px-5 py-3.5 text-right">
+                    <td className="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                      <Link
+                        href={`/dashboard/clients/${client.id}`}
+                        className="inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        View Profile
+                      </Link>
+                      {isAdmin && (
                         <button
                           onClick={() => openEditModal(client)}
-                          className="inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                         >
                           <Edit2 className="h-3 w-3" /> Correct Data
                         </button>
-                      </td>
-                    )}
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

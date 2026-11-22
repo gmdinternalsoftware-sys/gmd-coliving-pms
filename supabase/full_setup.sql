@@ -606,3 +606,60 @@ begin
   );
 end;
 $$;
+
+-- 12. STORAGE BUCKET: client-documents (Private)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'client-documents',
+  'client-documents',
+  false,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+)
+on conflict (id) do update set
+  public = false,
+  file_size_limit = 5242880,
+  allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+drop policy if exists "Active employees can read client documents" on storage.objects;
+create policy "Active employees can read client documents"
+  on storage.objects for select
+  using (bucket_id = 'client-documents' and (select public.is_active_profile()));
+
+drop policy if exists "Employees can upload client documents" on storage.objects;
+create policy "Employees can upload client documents"
+  on storage.objects for insert
+  with check (bucket_id = 'client-documents' and (select public.is_active_profile()));
+
+-- 13. AADHAAR REVEAL AUDIT FUNCTION
+create or replace function public.log_aadhaar_reveal(p_client_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if not (select public.is_active_profile()) then
+    raise exception 'Unauthorized: Only active employees can access client documents.';
+  end if;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    record_id,
+    new_data
+  ) values (
+    auth.uid(),
+    'aadhaar_reveal',
+    'clients',
+    p_client_id,
+    jsonb_build_object(
+      'revealed_at', now(),
+      'actor_role', public.get_my_role()
+    )
+  );
+
+  return true;
+end;
+$$;
