@@ -176,7 +176,7 @@ create table audit_log (
 - [x] **Phase 1** Admin and inventory: create employees, flats/rooms/beds, bed inventory view with filters
 - [x] **Phase 2** Existing tenants (Admin only): add form, Excel/CSV bulk import with validation, incomplete-profile filter, admin manual edit
 - [x] **Phase 3** Client profiles: searchable list, profile page (flat/bed, rent paid, phones, photo, masked Aadhaar), photo upload
-- [ ] **Phase 4** Token workflow: sales token form, NOC queue, Accounts collection and move-in, status badges, "everyone can view" token list
+- [x] **Phase 4** Token workflow: sales token form, NOC queue, Accounts collection and move-in, status badges, "everyone can view" token list
 - [ ] **Phase 5** Payments and dues: monthly rent generation, pending/overdue list, receipts (PDF), deposit refund on move-out
 - [ ] **Phase 6** Electricity: readings, bill calc, split, payment tracking
 - [ ] **Phase 7** Reports and Excel export: dashboard, export sheets (All Beds, Occupied, Vacant, Dues)

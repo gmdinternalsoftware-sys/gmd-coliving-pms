@@ -663,3 +663,463 @@ begin
   return true;
 end;
 $$;
+
+
+-- =============================================================================
+-- 14. PHASE 4: TOKEN WORKFLOW & PROCEDURES
+-- =============================================================================
+
+-- View for tokens workflow
+create or replace view public.v_tokens_workflow
+with (security_invoker = true)
+as
+select 
+  bk.id as booking_id,
+  bk.source,
+  bk.status as booking_status,
+  bk.token_amount,
+  bk.agreed_rent,
+  bk.deposit_amount,
+  bk.move_in_date,
+  bk.next_rent_due,
+  bk.created_at as token_created_at,
+  bk.updated_at as booking_updated_at,
+  c.id as client_id,
+  c.full_name as client_name,
+  c.phone1 as client_phone1,
+  c.phone2 as client_phone2,
+  c.aadhaar_last4,
+  c.photo_path,
+  b.id as bed_id,
+  b.bed_label,
+  b.base_price as bed_base_price,
+  b.status as bed_status,
+  r.id as room_id,
+  r.room_no,
+  r.sharing_type,
+  f.id as flat_id,
+  f.name as flat_name,
+  nr.id as noc_id,
+  nr.status as noc_status,
+  nr.remarks as noc_remarks,
+  nr.updated_at as noc_updated_at,
+  p_noc.full_name as noc_done_by_name,
+  p_sales.full_name as created_by_name
+from public.bookings bk
+join public.clients c on bk.client_id = c.id
+join public.beds b on bk.bed_id = b.id
+join public.rooms r on b.room_id = r.id
+join public.flats f on r.flat_id = f.id
+left join public.noc_records nr on nr.booking_id = bk.id
+left join public.profiles p_noc on nr.done_by = p_noc.id
+left join public.profiles p_sales on bk.created_by = p_sales.id
+where bk.source = 'token' or bk.status in ('token', 'noc_hold', 'noc_cleared', 'rejected');
+
+create or replace function public.create_token_booking_atomic(
+  p_full_name text,
+  p_phone1 text,
+  p_phone2 text default null,
+  p_emergency_name text default null,
+  p_emergency_phone text default null,
+  p_aadhaar_encrypted bytea default null,
+  p_aadhaar_last4 char(4) default null,
+  p_aadhaar_hash text default null,
+  p_bed_id uuid default null,
+  p_agreed_rent numeric default 0,
+  p_token_amount numeric default 0,
+  p_move_in_date date default null,
+  p_payment_mode public.payment_mode default 'upi',
+  p_payment_reference text default null,
+  p_notes text default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_role public.app_role;
+  v_bed_status public.bed_status;
+  v_client_id uuid;
+  v_booking_id uuid;
+  v_existing_booking_id uuid;
+begin
+  v_caller_role := public.get_my_role();
+  if v_caller_role not in ('admin', 'sales') then
+    raise exception 'Unauthorized: Only Admin or Sales can create tokens.';
+  end if;
+
+  if p_bed_id is null then
+    raise exception 'A valid bed must be selected.';
+  end if;
+
+  select status into v_bed_status
+  from public.beds
+  where id = p_bed_id
+  for update;
+
+  if not found then
+    raise exception 'Selected bed not found.';
+  end if;
+
+  if v_bed_status != 'vacant' then
+    raise exception 'Bed is no longer vacant (current status: %). It was just reserved or occupied by someone else.', v_bed_status;
+  end if;
+
+  select id into v_existing_booking_id
+  from public.bookings
+  where bed_id = p_bed_id
+    and status in ('token', 'noc_hold', 'noc_cleared', 'active')
+  limit 1;
+
+  if v_existing_booking_id is not null then
+    raise exception 'Bed already has an active or reserved booking.';
+  end if;
+
+  if p_aadhaar_hash is not null then
+    select id into v_client_id from public.clients where aadhaar_hash = p_aadhaar_hash limit 1;
+  end if;
+
+  if v_client_id is null and p_phone1 is not null then
+    select id into v_client_id from public.clients where phone1 = p_phone1 limit 1;
+  end if;
+
+  if v_client_id is not null then
+    update public.clients
+    set 
+      phone2 = coalesce(phone2, p_phone2),
+      emergency_contact_name = coalesce(emergency_contact_name, p_emergency_name),
+      emergency_contact_phone = coalesce(emergency_contact_phone, p_emergency_phone),
+      aadhaar_encrypted = coalesce(aadhaar_encrypted, p_aadhaar_encrypted),
+      aadhaar_last4 = coalesce(aadhaar_last4, p_aadhaar_last4),
+      aadhaar_hash = coalesce(aadhaar_hash, p_aadhaar_hash),
+      updated_at = now()
+    where id = v_client_id;
+  else
+    insert into public.clients (
+      full_name, phone1, phone2,
+      emergency_contact_name, emergency_contact_phone,
+      aadhaar_encrypted, aadhaar_last4, aadhaar_hash,
+      created_by
+    ) values (
+      p_full_name, p_phone1, p_phone2,
+      p_emergency_name, p_emergency_phone,
+      p_aadhaar_encrypted, p_aadhaar_last4, p_aadhaar_hash,
+      auth.uid()
+    ) returning id into v_client_id;
+  end if;
+
+  insert into public.bookings (
+    client_id,
+    bed_id,
+    source,
+    status,
+    token_amount,
+    agreed_rent,
+    move_in_date,
+    created_by
+  ) values (
+    v_client_id,
+    p_bed_id,
+    'token',
+    'token',
+    p_token_amount,
+    p_agreed_rent,
+    p_move_in_date,
+    auth.uid()
+  ) returning id into v_booking_id;
+
+  update public.beds
+  set status = 'reserved', updated_at = now()
+  where id = p_bed_id;
+
+  insert into public.noc_records (
+    booking_id,
+    status,
+    remarks,
+    created_at,
+    updated_at
+  ) values (
+    v_booking_id,
+    'pending',
+    coalesce(p_notes, 'Token created by sales. Pending NOC verification.'),
+    now(),
+    now()
+  );
+
+  if p_token_amount > 0 then
+    insert into public.payments (
+      booking_id,
+      type,
+      amount,
+      mode,
+      paid_on,
+      reference,
+      received_by,
+      notes
+    ) values (
+      v_booking_id,
+      'token',
+      p_token_amount,
+      p_payment_mode,
+      current_date,
+      p_payment_reference,
+      auth.uid(),
+      'Initial token advance'
+    );
+  end if;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    record_id,
+    new_data
+  ) values (
+    auth.uid(),
+    'create_token',
+    'bookings',
+    v_booking_id,
+    jsonb_build_object(
+      'client_id', v_client_id,
+      'bed_id', p_bed_id,
+      'token_amount', p_token_amount,
+      'agreed_rent', p_agreed_rent,
+      'move_in_date', p_move_in_date
+    )
+  );
+
+  return json_build_object(
+    'success', true,
+    'booking_id', v_booking_id,
+    'client_id', v_client_id
+  );
+end;
+$$;
+
+create or replace function public.update_noc_status_atomic(
+  p_booking_id uuid,
+  p_status public.noc_status,
+  p_remarks text default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_role public.app_role;
+  v_booking_status public.booking_status;
+  v_bed_id uuid;
+  v_target_booking_status public.booking_status;
+begin
+  v_caller_role := public.get_my_role();
+  if v_caller_role not in ('admin', 'noc') then
+    raise exception 'Unauthorized: Only Admin or NOC can update NOC status.';
+  end if;
+
+  select status, bed_id into v_booking_status, v_bed_id
+  from public.bookings
+  where id = p_booking_id
+  for update;
+
+  if not found then
+    raise exception 'Booking not found.';
+  end if;
+
+  if v_booking_status in ('active', 'cancelled', 'moved_out') then
+    raise exception 'Cannot change NOC status for a booking with status %.', v_booking_status;
+  end if;
+
+  if p_status = 'cleared' then
+    v_target_booking_status := 'noc_cleared';
+  elsif p_status = 'hold' then
+    v_target_booking_status := 'noc_hold';
+  elsif p_status = 'rejected' then
+    v_target_booking_status := 'rejected';
+  else
+    v_target_booking_status := 'token';
+  end if;
+
+  update public.noc_records
+  set 
+    status = p_status,
+    remarks = p_remarks,
+    done_by = auth.uid(),
+    updated_at = now()
+  where booking_id = p_booking_id;
+
+  if not found then
+    insert into public.noc_records (booking_id, status, remarks, done_by, updated_at)
+    values (p_booking_id, p_status, p_remarks, auth.uid(), now());
+  end if;
+
+  update public.bookings
+  set status = v_target_booking_status, updated_at = now()
+  where id = p_booking_id;
+
+  if p_status = 'rejected' then
+    update public.beds
+    set status = 'vacant', updated_at = now()
+    where id = v_bed_id;
+  end if;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    record_id,
+    new_data
+  ) values (
+    auth.uid(),
+    'update_noc_status',
+    'noc_records',
+    p_booking_id,
+    jsonb_build_object(
+      'noc_status', p_status,
+      'booking_status', v_target_booking_status,
+      'remarks', p_remarks,
+      'bed_freed', (p_status = 'rejected')
+    )
+  );
+
+  return json_build_object(
+    'success', true,
+    'booking_id', p_booking_id,
+    'booking_status', v_target_booking_status,
+    'noc_status', p_status
+  );
+end;
+$$;
+
+create or replace function public.confirm_accounts_move_in_atomic(
+  p_booking_id uuid,
+  p_actual_move_in_date date,
+  p_deposit_amount numeric,
+  p_deposit_mode public.payment_mode default 'upi',
+  p_deposit_reference text default null,
+  p_rent_amount numeric default 0,
+  p_rent_mode public.payment_mode default 'upi',
+  p_rent_reference text default null,
+  p_next_rent_due date default null,
+  p_notes text default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_role public.app_role;
+  v_booking record;
+  v_bed_id uuid;
+  v_calculated_due date;
+begin
+  v_caller_role := public.get_my_role();
+  if v_caller_role not in ('admin', 'accounts') then
+    raise exception 'Unauthorized: Only Admin or Accounts can confirm move-in.';
+  end if;
+
+  select id, bed_id, status, client_id, agreed_rent, token_amount
+  into v_booking
+  from public.bookings
+  where id = p_booking_id
+  for update;
+
+  if not found then
+    raise exception 'Booking not found.';
+  end if;
+
+  if v_booking.status not in ('noc_cleared', 'token') then
+    raise exception 'Booking status must be NOC Cleared before confirming move-in (current status: %).', v_booking.status;
+  end if;
+
+  v_bed_id := v_booking.bed_id;
+  v_calculated_due := coalesce(p_next_rent_due, (p_actual_move_in_date + interval '1 month')::date);
+
+  update public.bookings
+  set 
+    status = 'active',
+    move_in_date = p_actual_move_in_date,
+    deposit_amount = p_deposit_amount,
+    next_rent_due = v_calculated_due,
+    updated_at = now()
+  where id = p_booking_id;
+
+  update public.beds
+  set status = 'occupied', updated_at = now()
+  where id = v_bed_id;
+
+  if p_deposit_amount > 0 then
+    insert into public.payments (
+      booking_id,
+      type,
+      amount,
+      mode,
+      paid_on,
+      reference,
+      received_by,
+      notes
+    ) values (
+      p_booking_id,
+      'deposit',
+      p_deposit_amount,
+      p_deposit_mode,
+      p_actual_move_in_date,
+      p_deposit_reference,
+      auth.uid(),
+      coalesce(p_notes, 'Security deposit collected on move-in')
+    );
+  end if;
+
+  if p_rent_amount > 0 then
+    insert into public.payments (
+      booking_id,
+      type,
+      amount,
+      mode,
+      for_month,
+      paid_on,
+      reference,
+      received_by,
+      notes
+    ) values (
+      p_booking_id,
+      'rent',
+      p_rent_amount,
+      p_rent_mode,
+      date_trunc('month', p_actual_move_in_date)::date,
+      p_actual_move_in_date,
+      p_rent_reference,
+      auth.uid(),
+      'First month rent collected on move-in'
+    );
+  end if;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    record_id,
+    new_data
+  ) values (
+    auth.uid(),
+    'confirm_move_in',
+    'bookings',
+    p_booking_id,
+    jsonb_build_object(
+      'actual_move_in_date', p_actual_move_in_date,
+      'deposit_collected', p_deposit_amount,
+      'rent_collected', p_rent_amount,
+      'bed_id', v_bed_id
+    )
+  );
+
+  return json_build_object(
+    'success', true,
+    'booking_id', p_booking_id,
+    'bed_id', v_bed_id,
+    'status', 'active'
+  );
+end;
+$$;

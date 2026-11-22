@@ -113,3 +113,37 @@ export interface InventoryBedItem {
   booking_status: BookingStatus | null;
 }
 
+export interface TokenWorkflowItem {
+  booking_id: string;
+  source: string;
+  booking_status: BookingStatus;
+  token_amount: number;
+  agreed_rent: number;
+  deposit_amount: number;
+  move_in_date: string | null;
+  next_rent_due: string | null;
+  token_created_at: string;
+  booking_updated_at: string;
+  client_id: string;
+  client_name: string;
+  client_phone1: string;
+  client_phone2: string | null;
+  aadhaar_last4: string | null;
+  photo_path: string | null;
+  bed_id: string;
+  bed_label: string;
+  bed_base_price: number;
+  bed_status: BedStatus;
+  room_id: string;
+  room_no: string;
+  sharing_type: number;
+  flat_id: string;
+  flat_name: string;
+  noc_id: string | null;
+  noc_status: NocStatus | null;
+  noc_remarks: string | null;
+  noc_updated_at: string | null;
+  noc_done_by_name: string | null;
+  created_by_name: string | null;
+}
+

@@ -148,4 +148,70 @@ export const clientCorrectionSchema = z.object({
 
 export type ClientCorrectionInput = z.infer<typeof clientCorrectionSchema>;
 
+// =============================================================================
+// PHASE 4: TOKEN WORKFLOW SCHEMAS
+// =============================================================================
+
+export const paymentModeSchema = z.enum(["cash", "upi", "bank_transfer", "card", "other"]);
+
+export const createTokenSchema = z.object({
+  full_name: z.string().min(2, "Client name must be at least 2 characters"),
+  phone1: indianPhoneSchema,
+  phone2: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: "Secondary phone must be 10 digits",
+    }),
+  emergency_name: z.string().trim().optional(),
+  emergency_phone: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: "Emergency phone must be 10 digits",
+    }),
+  aadhaar: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{12}$/.test(val), {
+      message: "Aadhaar number must be exactly 12 numeric digits",
+    }),
+  bed_id: z.string().uuid("Please select a valid vacant bed"),
+  agreed_rent: z.coerce.number().min(0, "Agreed rent must be positive"),
+  token_amount: z.coerce.number().min(0, "Token amount must be positive or 0"),
+  move_in_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid expected move-in date").optional(),
+  payment_mode: paymentModeSchema.default("upi"),
+  payment_reference: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+});
+
+export type CreateTokenInput = z.infer<typeof createTokenSchema>;
+
+export const updateNocSchema = z.object({
+  booking_id: z.string().uuid("Invalid booking ID"),
+  status: z.enum(["cleared", "hold", "rejected"]),
+  remarks: z.string().min(3, "Remarks are required (at least 3 characters)"),
+});
+
+export type UpdateNocInput = z.infer<typeof updateNocSchema>;
+
+export const confirmMoveInSchema = z.object({
+  booking_id: z.string().uuid("Invalid booking ID"),
+  actual_move_in_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid move-in date"),
+  deposit_amount: z.coerce.number().min(0, "Deposit amount must be 0 or positive"),
+  deposit_mode: paymentModeSchema.default("upi"),
+  deposit_reference: z.string().trim().optional(),
+  rent_amount: z.coerce.number().min(0, "First month rent must be 0 or positive"),
+  rent_mode: paymentModeSchema.default("upi"),
+  rent_reference: z.string().trim().optional(),
+  next_rent_due: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid next rent due date").optional(),
+  notes: z.string().trim().optional(),
+});
+
+export type ConfirmMoveInInput = z.infer<typeof confirmMoveInSchema>;
+
+
 
