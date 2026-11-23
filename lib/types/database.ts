@@ -302,6 +302,40 @@ export interface ElectricityDueOverview {
   bill_total_amount: number;
 }
 
+export interface FlatOccupancyReport {
+  flat_id: string;
+  flat_name: string;
+  flat_address: string | null;
+  is_active: boolean;
+  total_rooms: number;
+  total_beds: number;
+  occupied_beds: number;
+  vacant_beds: number;
+  reserved_beds: number;
+  notice_beds: number;
+  blocked_beds: number;
+  occupancy_rate: number;
+  potential_revenue: number;
+  current_occupied_revenue: number;
+}
+
+export interface DashboardStats {
+  totalBeds: number;
+  occupiedBeds: number;
+  vacantBeds: number;
+  reservedBeds: number;
+  noticeBeds: number;
+  blockedBeds: number;
+  occupancyRate: number;
+  tokensThisMonthCount: number;
+  tokensThisMonthAmount: number;
+  collectionsThisMonth: number;
+  totalOverdueAmount: number;
+  overdueTenantsCount: number;
+  flatsOccupancy: FlatOccupancyReport[];
+}
+
+
 
 
 
