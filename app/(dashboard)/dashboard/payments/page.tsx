@@ -1,44 +1,98 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth";
 import { PaymentsView, type RecentPaymentItem, type ActiveTenantBooking } from "./payments-view";
 import type { DueOverviewItem, AppRole } from "@/lib/types/database";
 
 export default async function PaymentsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get current user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
+  const { profile, supabase } = await requireAuth();
   const userRole = (profile?.role || "accounts") as AppRole;
 
-  // 1. Fetch Dues Overview (from v_dues_overview or fallback query)
+  // Run all primary queries concurrently in parallel
+  const [viewDuesRes, paymentsRes, activeBookingsRes, flatsRes] = await Promise.all([
+    supabase
+      .from("v_dues_overview")
+      .select("*")
+      .order("due_date", { ascending: true }),
+    supabase
+      .from("payments")
+      .select(`
+        id,
+        booking_id,
+        type,
+        amount,
+        mode,
+        for_month,
+        paid_on,
+        reference,
+        notes,
+        created_at,
+        bookings (
+          clients (
+            id,
+            full_name,
+            phone1
+          ),
+          beds (
+            bed_label,
+            rooms (
+              id,
+              room_no,
+              flats (
+                id,
+                name
+              )
+            )
+          )
+        )
+      `)
+      .order("paid_on", { ascending: false })
+      .limit(100),
+    supabase
+      .from("bookings")
+      .select(`
+        id,
+        agreed_rent,
+        deposit_amount,
+        move_in_date,
+        next_rent_due,
+        notice_date,
+        move_out_date,
+        clients (
+          id,
+          full_name,
+          phone1
+        ),
+        beds (
+          id,
+          bed_label,
+          status,
+          rooms (
+            id,
+            room_no,
+            flats (
+              id,
+              name
+            )
+          )
+        )
+      `)
+      .eq("status", "active")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("flats")
+      .select("id, name, address, owner_name, notes, is_active, created_at, updated_at")
+      .eq("is_active", true)
+      .order("name", { ascending: true }),
+  ]);
+
   let duesList: DueOverviewItem[] = [];
 
-  const { data: viewDues, error: viewError } = await supabase
-    .from("v_dues_overview")
-    .select("*")
-    .order("due_date", { ascending: true });
-
-  if (!viewError && viewDues) {
-    duesList = viewDues as DueOverviewItem[];
+  if (!viewDuesRes.error && viewDuesRes.data) {
+    duesList = viewDuesRes.data as DueOverviewItem[];
   } else {
     // Fallback if view not yet applied in Supabase
     const { data: rawDues } = await supabase
       .from("rent_dues")
-      .select(
-        `
+      .select(`
         id,
         booking_id,
         for_month,
@@ -74,8 +128,7 @@ export default async function PaymentsPage() {
             )
           )
         )
-      `
-      )
+      `)
       .order("due_date", { ascending: true });
 
     if (rawDues) {
@@ -98,7 +151,8 @@ export default async function PaymentsPage() {
           due_amount: dueAmt,
           paid_amount: paidAmt,
           balance_due: bal,
-          calculated_status: (d.status === "paid" ? "paid" : isOverdue ? "overdue" : "pending") as any,
+          db_status: d.status,
+          calculated_status: isOverdue ? "overdue" : d.status,
           days_overdue: isOverdue ? daysDiff : 0,
           demand_generated_at: d.created_at,
           client_id: bk?.clients?.id || "",
@@ -106,7 +160,7 @@ export default async function PaymentsPage() {
           client_phone1: bk?.clients?.phone1 || "",
           bed_id: bk?.beds?.id || "",
           bed_label: bk?.beds?.bed_label || "",
-          bed_status: bk?.beds?.status || "occupied",
+          bed_status: bk?.beds?.status || "vacant",
           room_id: bk?.beds?.rooms?.id || "",
           room_no: bk?.beds?.rooms?.room_no || "",
           flat_id: bk?.beds?.rooms?.flats?.id || "",
@@ -122,47 +176,7 @@ export default async function PaymentsPage() {
     }
   }
 
-  // 2. Fetch Recent Payments for Ledger
-  const { data: paymentsData } = await supabase
-    .from("payments")
-    .select(
-      `
-      id,
-      booking_id,
-      type,
-      amount,
-      mode,
-      for_month,
-      paid_on,
-      reference,
-      notes,
-      created_at,
-      bookings (
-        id,
-        clients (
-          id,
-          full_name,
-          phone1
-        ),
-        beds (
-          id,
-          bed_label,
-          rooms (
-            id,
-            room_no,
-            flats (
-              id,
-              name
-            )
-          )
-        )
-      )
-    `
-    )
-    .order("paid_on", { ascending: false })
-    .limit(100);
-
-  const recentPayments: RecentPaymentItem[] = (paymentsData || []).map((p: any) => ({
+  const recentPayments: RecentPaymentItem[] = (paymentsRes.data || []).map((p: any) => ({
     id: p.id,
     booking_id: p.booking_id,
     type: p.type,
@@ -181,42 +195,7 @@ export default async function PaymentsPage() {
     bed_label: p.bookings?.beds?.bed_label || "",
   }));
 
-  // 3. Fetch Active Bookings (for recording payments & notice)
-  const { data: activeBookingsData } = await supabase
-    .from("bookings")
-    .select(
-      `
-      id,
-      agreed_rent,
-      deposit_amount,
-      move_in_date,
-      next_rent_due,
-      notice_date,
-      move_out_date,
-      clients (
-        id,
-        full_name,
-        phone1
-      ),
-      beds (
-        id,
-        bed_label,
-        status,
-        rooms (
-          id,
-          room_no,
-          flats (
-            id,
-            name
-          )
-        )
-      )
-    `
-    )
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
-
-  const activeBookings: ActiveTenantBooking[] = (activeBookingsData || []).map((b: any) => ({
+  const activeBookings: ActiveTenantBooking[] = (activeBookingsRes.data || []).map((b: any) => ({
     id: b.id,
     client_id: b.clients?.id || "",
     client_name: b.clients?.full_name || "Unknown",
@@ -234,20 +213,13 @@ export default async function PaymentsPage() {
     bed_status: b.beds?.status || "occupied",
   }));
 
-  // 4. Fetch Flats
-  const { data: flats } = await supabase
-    .from("flats")
-    .select("id, name, address, owner_name, notes, is_active, created_at, updated_at")
-    .eq("is_active", true)
-    .order("name", { ascending: true });
-
   return (
     <div className="space-y-6">
       <PaymentsView
         initialDues={duesList}
         recentPayments={recentPayments}
         activeBookings={activeBookings}
-        flats={flats || []}
+        flats={flatsRes.data || []}
         userRole={userRole}
       />
     </div>

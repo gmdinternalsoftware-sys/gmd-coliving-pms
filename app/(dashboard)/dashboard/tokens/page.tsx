@@ -1,44 +1,59 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth";
 import { TokensView } from "./tokens-view";
 import type { TokenWorkflowItem, AppRole } from "@/lib/types/database";
 
 export default async function TokensPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get current user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, role, full_name, is_active")
-    .eq("id", user.id)
-    .single();
-
+  const { user, profile, supabase } = await requireAuth();
   const userRole = (profile?.role || "sales") as AppRole;
 
-  // 1. Fetch Tokens: Attempt from v_tokens_workflow, fallback to joined bookings if view not yet applied
+  // Run all primary queries concurrently in parallel
+  const [viewRes, flatsRes, roomsRes, bedsRes] = await Promise.all([
+    supabase
+      .from("v_tokens_workflow")
+      .select("*")
+      .order("token_created_at", { ascending: false }),
+    supabase
+      .from("flats")
+      .select("id, name, address, owner_name, notes, is_active, created_at, updated_at")
+      .eq("is_active", true)
+      .order("name", { ascending: true }),
+    supabase
+      .from("rooms")
+      .select("id, flat_id, room_no, sharing_type, is_active, created_at, updated_at")
+      .eq("is_active", true)
+      .order("room_no", { ascending: true }),
+    supabase
+      .from("beds")
+      .select(`
+        id,
+        room_id,
+        bed_label,
+        base_price,
+        status,
+        created_at,
+        updated_at,
+        rooms (
+          id,
+          room_no,
+          flats (
+            id,
+            name
+          )
+        )
+      `)
+      .eq("status", "vacant")
+      .order("bed_label", { ascending: true }),
+  ]);
+
   let tokensList: TokenWorkflowItem[] = [];
 
-  const { data: viewData, error: viewError } = await supabase
-    .from("v_tokens_workflow")
-    .select("*")
-    .order("token_created_at", { ascending: false });
-
-  if (!viewError && viewData) {
-    tokensList = viewData as TokenWorkflowItem[];
+  if (!viewRes.error && viewRes.data) {
+    tokensList = viewRes.data as TokenWorkflowItem[];
   } else {
     // Fallback direct join
     const { data: bookingsData } = await supabase
       .from("bookings")
-      .select(
-        `
+      .select(`
         id,
         source,
         status,
@@ -80,8 +95,7 @@ export default async function TokensPage() {
           updated_at,
           done_by
         )
-      `
-      )
+      `)
       .or("source.eq.token,status.in.(token,noc_hold,noc_cleared,rejected)")
       .order("created_at", { ascending: false });
 
@@ -125,46 +139,7 @@ export default async function TokensPage() {
     }
   }
 
-  // 2. Fetch Active Flats
-  const { data: flats } = await supabase
-    .from("flats")
-    .select("id, name, address, owner_name, notes, is_active, created_at, updated_at")
-    .eq("is_active", true)
-    .order("name", { ascending: true });
-
-  // 3. Fetch Active Rooms
-  const { data: rooms } = await supabase
-    .from("rooms")
-    .select("id, flat_id, room_no, sharing_type, is_active, created_at, updated_at")
-    .eq("is_active", true)
-    .order("room_no", { ascending: true });
-
-  // 4. Fetch Vacant Beds
-  const { data: beds } = await supabase
-    .from("beds")
-    .select(
-      `
-      id,
-      room_id,
-      bed_label,
-      base_price,
-      status,
-      created_at,
-      updated_at,
-      rooms (
-        id,
-        room_no,
-        flats (
-          id,
-          name
-        )
-      )
-    `
-    )
-    .eq("status", "vacant")
-    .order("bed_label", { ascending: true });
-
-  const vacantBeds = (beds || []).map((b: any) => ({
+  const vacantBeds = (bedsRes.data || []).map((b: any) => ({
     id: b.id,
     room_id: b.room_id,
     bed_label: b.bed_label,
@@ -181,8 +156,8 @@ export default async function TokensPage() {
     <div className="space-y-6">
       <TokensView
         initialTokens={tokensList}
-        flats={flats || []}
-        rooms={rooms || []}
+        flats={flatsRes.data || []}
+        rooms={roomsRes.data || []}
         vacantBeds={vacantBeds}
         userRole={userRole}
         userId={user.id}

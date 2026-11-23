@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth";
 import { ElectricityView } from "./electricity-view";
 import type { AppRole, Flat, ElectricityDueOverview, ElectricityBill } from "@/lib/types/database";
 
@@ -20,35 +19,80 @@ export interface ElectricityPaymentItem {
 }
 
 export default async function ElectricityPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get current user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
+  const { profile, supabase } = await requireAuth();
   const userRole = (profile?.role || "electricity") as AppRole;
 
-  // 1. Fetch Tenant Electricity Dues (try view first, fallback to table join)
+  // Run all primary queries concurrently in parallel
+  const [viewDuesRes, billsRes, paymentsRes, flatsRes] = await Promise.all([
+    supabase
+      .from("v_electricity_dues_overview")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("electricity_bills")
+      .select(`
+        id,
+        flat_id,
+        period_start,
+        period_end,
+        rate,
+        units,
+        total_amount,
+        common_units,
+        common_amount,
+        rooms_total_units,
+        rooms_total_amount,
+        total_occupied_beds,
+        status,
+        created_by,
+        created_at,
+        flats (
+          name
+        )
+      `)
+      .order("period_end", { ascending: false }),
+    supabase
+      .from("payments")
+      .select(`
+        id,
+        booking_id,
+        amount,
+        mode,
+        paid_on,
+        reference,
+        notes,
+        created_at,
+        bookings (
+          clients (
+            full_name,
+            phone1
+          ),
+          beds (
+            bed_label,
+            rooms (
+              room_no,
+              flats (
+                name
+              )
+            )
+          )
+        )
+      `)
+      .eq("type", "electricity")
+      .order("paid_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("flats")
+      .select("*")
+      .eq("is_active", true)
+      .order("name", { ascending: true }),
+  ]);
+
   let duesList: ElectricityDueOverview[] = [];
 
-  const { data: viewDues, error: viewError } = await supabase
-    .from("v_electricity_dues_overview")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (!viewError && viewDues) {
-    duesList = viewDues as ElectricityDueOverview[];
+  if (!viewDuesRes.error && viewDuesRes.data) {
+    duesList = viewDuesRes.data as ElectricityDueOverview[];
   } else {
     // Fallback if view not yet applied in Supabase
     const { data: rawDues } = await supabase
@@ -120,32 +164,7 @@ export default async function ElectricityPage() {
     }
   }
 
-  // 2. Fetch Master Electricity Bills
-  const { data: rawBills } = await supabase
-    .from("electricity_bills")
-    .select(`
-      id,
-      flat_id,
-      period_start,
-      period_end,
-      rate,
-      units,
-      total_amount,
-      common_units,
-      common_amount,
-      rooms_total_units,
-      rooms_total_amount,
-      total_occupied_beds,
-      status,
-      created_by,
-      created_at,
-      flats (
-        name
-      )
-    `)
-    .order("period_end", { ascending: false });
-
-  const billsList: ElectricityBill[] = (rawBills || []).map((b: any) => ({
+  const billsList: ElectricityBill[] = (billsRes.data || []).map((b: any) => ({
     id: b.id,
     flat_id: b.flat_id,
     period_start: b.period_start,
@@ -164,40 +183,7 @@ export default async function ElectricityPage() {
     flat_name: b.flats?.name || "Unknown Flat",
   }));
 
-  // 3. Fetch Recent Electricity Payments
-  const { data: rawPayments } = await supabase
-    .from("payments")
-    .select(`
-      id,
-      booking_id,
-      amount,
-      mode,
-      paid_on,
-      reference,
-      notes,
-      created_at,
-      bookings (
-        clients (
-          full_name,
-          phone1
-        ),
-        beds (
-          bed_label,
-          rooms (
-            room_no,
-            flats (
-              name
-            )
-          )
-        )
-      )
-    `)
-    .eq("type", "electricity")
-    .order("paid_on", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  const paymentsList: ElectricityPaymentItem[] = (rawPayments || []).map((p: any) => ({
+  const paymentsList: ElectricityPaymentItem[] = (paymentsRes.data || []).map((p: any) => ({
     id: p.id,
     booking_id: p.booking_id,
     amount: Number(p.amount || 0),
@@ -213,19 +199,12 @@ export default async function ElectricityPage() {
     bed_label: p.bookings?.beds?.bed_label || "-",
   }));
 
-  // 4. Fetch Active Flats
-  const { data: flats } = await supabase
-    .from("flats")
-    .select("*")
-    .eq("is_active", true)
-    .order("name", { ascending: true });
-
   return (
     <ElectricityView
       initialDues={duesList}
       bills={billsList}
       payments={paymentsList}
-      flats={(flats as Flat[]) || []}
+      flats={(flatsRes.data as Flat[]) || []}
       userRole={userRole}
     />
   );

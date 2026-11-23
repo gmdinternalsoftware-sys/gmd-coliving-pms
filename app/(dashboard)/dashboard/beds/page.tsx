@@ -1,43 +1,55 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth";
 import { InventoryView } from "./inventory-view";
 import type { InventoryBedItem, Flat, Room } from "@/lib/types/database";
 
 export default async function BedsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get current user profile for role check
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
+  const { profile, supabase } = await requireAuth();
   const isAdmin = profile?.role === "admin";
 
-  // Fetch flats
-  const { data: flatsData } = await supabase
-    .from("flats")
-    .select("*")
-    .order("name", { ascending: true });
+  // Fetch flats, rooms, and beds concurrently in parallel
+  const [flatsRes, roomsRes, bedsRes] = await Promise.all([
+    supabase
+      .from("flats")
+      .select("*")
+      .order("name", { ascending: true }),
+    supabase
+      .from("rooms")
+      .select("*, flats(name)")
+      .order("room_no", { ascending: true }),
+    supabase
+      .from("beds")
+      .select(`
+        id,
+        bed_label,
+        base_price,
+        status,
+        room_id,
+        rooms (
+          id,
+          room_no,
+          sharing_type,
+          flats (
+            id,
+            name,
+            address
+          )
+        ),
+        bookings (
+          id,
+          status,
+          clients (
+            id,
+            full_name,
+            phone1
+          )
+        )
+      `)
+      .order("bed_label", { ascending: true }),
+  ]);
 
-  const flats: Flat[] = flatsData || [];
+  const flats: Flat[] = flatsRes.data || [];
 
-  // Fetch rooms with flat name
-  const { data: roomsData } = await supabase
-    .from("rooms")
-    .select("*, flats(name)")
-    .order("room_no", { ascending: true });
-
-  const rooms: (Room & { flat_name?: string })[] = (roomsData || []).map(
+  const rooms: (Room & { flat_name?: string })[] = (roomsRes.data || []).map(
     (r: any) => ({
       id: r.id,
       flat_id: r.flat_id,
@@ -50,45 +62,10 @@ export default async function BedsPage() {
     })
   );
 
-  // Fetch beds with room, flat, and live booking/client details
-  const { data: bedsData } = await supabase
-    .from("beds")
-    .select(
-      `
-      id,
-      bed_label,
-      base_price,
-      status,
-      room_id,
-      rooms (
-        id,
-        room_no,
-        sharing_type,
-        flats (
-          id,
-          name,
-          address
-        )
-      ),
-      bookings (
-        id,
-        status,
-        clients (
-          id,
-          full_name,
-          phone1
-        )
-      )
-    `
-    )
-    .order("bed_label", { ascending: true });
-
-  // Map to unified InventoryBedItem[]
-  const inventoryItems: InventoryBedItem[] = (bedsData || []).map((b: any) => {
+  const inventoryItems: InventoryBedItem[] = (bedsRes.data || []).map((b: any) => {
     const room = b.rooms;
     const flat = room?.flats;
 
-    // Find live booking (active or token or noc)
     const liveBooking = (b.bookings || []).find((bk: any) =>
       ["token", "noc_hold", "noc_cleared", "active"].includes(bk.status)
     );

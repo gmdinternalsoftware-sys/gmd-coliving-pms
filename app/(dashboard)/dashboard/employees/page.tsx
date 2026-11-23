@@ -1,25 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth";
 import { EmployeeDirectory } from "./employee-directory";
 
 export default async function EmployeesPage() {
-  const supabase = await createClient();
+  const { user, profile, supabase } = await requireAuth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: currentProfile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!currentProfile || currentProfile.role !== "admin") {
+  if (profile.role !== "admin") {
     return (
       <div className="flex h-96 flex-col items-center justify-center rounded-lg border bg-card p-6 text-center">
         <h2 className="text-xl font-bold text-destructive">Access Restricted</h2>

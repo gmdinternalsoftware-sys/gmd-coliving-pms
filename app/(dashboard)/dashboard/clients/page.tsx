@@ -1,32 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth";
 import { ClientsView, type ClientWithBooking } from "./clients-view";
 
 export default async function ClientsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Get current user profile for role check
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
+  const { profile, supabase } = await requireAuth();
   const isAdmin = profile?.role === "admin";
 
   // Fetch all clients with their active/current bookings
   const { data: clientsData } = await supabase
     .from("clients")
-    .select(
-      `
+    .select(`
       *,
       bookings (
         id,
@@ -44,8 +26,7 @@ export default async function ClientsPage() {
           )
         )
       )
-    `
-    )
+    `)
     .order("created_at", { ascending: false });
 
   // Map to ClientWithBooking format
@@ -75,9 +56,9 @@ export default async function ClientsPage() {
       created_by: c.created_by,
       created_at: c.created_at,
       updated_at: c.updated_at,
-      flat_name: flat?.name || null,
-      room_no: room?.room_no || null,
-      bed_label: bed?.bed_label || null,
+      active_flat_name: flat?.name || null,
+      active_room_no: room?.room_no || null,
+      active_bed_label: bed?.bed_label || null,
       booking_status: activeBooking?.status || null,
     };
   });
