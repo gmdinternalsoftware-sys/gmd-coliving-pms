@@ -1123,3 +1123,456 @@ begin
   );
 end;
 $$;
+
+
+-- =============================================================================
+-- 15. PHASE 5: PAYMENTS, DUES, RENT GENERATION & MOVE-OUT
+-- =============================================================================
+
+alter table public.bookings 
+  add column if not exists notice_date date;
+
+create table if not exists public.rent_dues (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null references public.bookings on delete cascade,
+  for_month date not null,
+  due_date date not null,
+  amount numeric(12,2) not null check (amount > 0),
+  paid_amount numeric(12,2) not null default 0 check (paid_amount >= 0),
+  status text not null default 'pending' check (status in ('pending', 'partial', 'paid', 'overdue', 'waived')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (booking_id, for_month)
+);
+
+alter table public.payments 
+  add column if not exists rent_due_id uuid references public.rent_dues on delete set null;
+
+drop trigger if exists trg_audit_rent_dues on public.rent_dues;
+create trigger trg_audit_rent_dues after insert or update or delete on public.rent_dues
+  for each row execute function public.audit_trigger_func();
+
+alter table public.rent_dues enable row level security;
+
+drop policy if exists "Active profiles can read rent_dues" on public.rent_dues;
+create policy "Active profiles can read rent_dues"
+  on public.rent_dues for select
+  using (public.is_active_profile());
+
+drop policy if exists "Admin and accounts can insert rent_dues" on public.rent_dues;
+create policy "Admin and accounts can insert rent_dues"
+  on public.rent_dues for insert
+  with check (public.get_my_role() in ('admin', 'accounts'));
+
+drop policy if exists "Admin and accounts can update rent_dues" on public.rent_dues;
+create policy "Admin and accounts can update rent_dues"
+  on public.rent_dues for update
+  using (public.get_my_role() in ('admin', 'accounts'));
+
+create or replace view public.v_dues_overview
+with (security_invoker = true)
+as
+select 
+  rd.id as due_id,
+  rd.booking_id,
+  rd.for_month,
+  rd.due_date,
+  rd.amount as due_amount,
+  rd.paid_amount,
+  (rd.amount - rd.paid_amount) as balance_due,
+  case 
+    when rd.status = 'paid' then 'paid'
+    when rd.status = 'waived' then 'waived'
+    when current_date > rd.due_date then 'overdue'
+    when rd.paid_amount > 0 then 'partial'
+    else 'pending'
+  end as calculated_status,
+  case 
+    when current_date > rd.due_date and rd.status != 'paid' and rd.status != 'waived'
+    then (current_date - rd.due_date)
+    else 0
+  end as days_overdue,
+  rd.created_at as demand_generated_at,
+  c.id as client_id,
+  c.full_name as client_name,
+  c.phone1 as client_phone1,
+  b.id as bed_id,
+  b.bed_label,
+  b.status as bed_status,
+  r.id as room_id,
+  r.room_no,
+  f.id as flat_id,
+  f.name as flat_name,
+  bk.status as booking_status,
+  bk.agreed_rent,
+  bk.deposit_amount,
+  bk.move_in_date,
+  bk.next_rent_due,
+  bk.notice_date
+from public.rent_dues rd
+join public.bookings bk on rd.booking_id = bk.id
+join public.clients c on bk.client_id = c.id
+join public.beds b on bk.bed_id = b.id
+join public.rooms r on b.room_id = r.id
+join public.flats f on r.flat_id = f.id;
+
+create or replace function public.generate_monthly_rents_atomic(p_for_month date)
+returns json
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_role public.app_role;
+  v_first_day date;
+  v_booking record;
+  v_due_date date;
+  v_generated_count integer := 0;
+begin
+  v_caller_role := public.get_my_role();
+  if v_caller_role not in ('admin', 'accounts') then
+    raise exception 'Unauthorized: Only Admin or Accounts can generate monthly rents.';
+  end if;
+
+  v_first_day := date_trunc('month', p_for_month)::date;
+
+  for v_booking in
+    select id, agreed_rent, move_in_date, next_rent_due
+    from public.bookings
+    where status = 'active'
+  loop
+    if v_booking.move_in_date is not null then
+      v_due_date := (v_first_day + (extract(day from v_booking.move_in_date)::integer - 1) * interval '1 day')::date;
+    else
+      v_due_date := (v_first_day + interval '4 days')::date;
+    end if;
+
+    insert into public.rent_dues (
+      booking_id,
+      for_month,
+      due_date,
+      amount,
+      paid_amount,
+      status
+    ) values (
+      v_booking.id,
+      v_first_day,
+      v_due_date,
+      v_booking.agreed_rent,
+      0,
+      case when current_date > v_due_date then 'overdue' else 'pending' end
+    )
+    on conflict (booking_id, for_month) do nothing;
+
+    if found then
+      v_generated_count := v_generated_count + 1;
+    end if;
+  end loop;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    new_data
+  ) values (
+    auth.uid(),
+    'generate_monthly_rent',
+    'rent_dues',
+    jsonb_build_object(
+      'for_month', v_first_day,
+      'demands_generated', v_generated_count
+    )
+  );
+
+  return json_build_object(
+    'success', true,
+    'for_month', v_first_day,
+    'demands_generated', v_generated_count
+  );
+end;
+$$;
+
+create or replace function public.record_payment_atomic(
+  p_booking_id uuid,
+  p_rent_due_id uuid default null,
+  p_type public.payment_type default 'rent',
+  p_amount numeric default 0,
+  p_mode public.payment_mode default 'upi',
+  p_paid_on date default current_date,
+  p_for_month date default null,
+  p_reference text default null,
+  p_notes text default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_role public.app_role;
+  v_payment_id uuid;
+  v_due record;
+  v_new_paid numeric;
+  v_new_status text;
+  v_next_due date;
+begin
+  v_caller_role := public.get_my_role();
+  if v_caller_role not in ('admin', 'accounts') then
+    raise exception 'Unauthorized: Only Admin or Accounts can record payments.';
+  end if;
+
+  if p_amount <= 0 then
+    raise exception 'Payment amount must be greater than 0.';
+  end if;
+
+  insert into public.payments (
+    booking_id,
+    rent_due_id,
+    type,
+    amount,
+    mode,
+    for_month,
+    paid_on,
+    reference,
+    received_by,
+    notes
+  ) values (
+    p_booking_id,
+    p_rent_due_id,
+    p_type,
+    p_amount,
+    p_mode,
+    p_for_month,
+    p_paid_on,
+    p_reference,
+    auth.uid(),
+    p_notes
+  ) returning id into v_payment_id;
+
+  if p_rent_due_id is not null then
+    select id, amount, paid_amount into v_due
+    from public.rent_dues
+    where id = p_rent_due_id
+    for update;
+
+    if found then
+      v_new_paid := v_due.paid_amount + p_amount;
+      if v_new_paid >= v_due.amount then
+        v_new_status := 'paid';
+      else
+        v_new_status := 'partial';
+      end if;
+
+      update public.rent_dues
+      set 
+        paid_amount = v_new_paid,
+        status = v_new_status,
+        updated_at = now()
+      where id = p_rent_due_id;
+
+      if v_new_status = 'paid' then
+        select next_rent_due into v_next_due from public.bookings where id = p_booking_id;
+        if v_next_due is not null then
+          update public.bookings
+          set next_rent_due = (v_next_due + interval '1 month')::date, updated_at = now()
+          where id = p_booking_id;
+        end if;
+      end if;
+    end if;
+  end if;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    record_id,
+    new_data
+  ) values (
+    auth.uid(),
+    'record_payment',
+    'payments',
+    v_payment_id,
+    jsonb_build_object(
+      'booking_id', p_booking_id,
+      'rent_due_id', p_rent_due_id,
+      'amount', p_amount,
+      'type', p_type,
+      'mode', p_mode,
+      'reference', p_reference
+    )
+  );
+
+  return json_build_object(
+    'success', true,
+    'payment_id', v_payment_id
+  );
+end;
+$$;
+
+create or replace function public.set_tenant_notice_atomic(
+  p_booking_id uuid,
+  p_notice_date date,
+  p_expected_move_out_date date,
+  p_notes text default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_role public.app_role;
+  v_bed_id uuid;
+begin
+  v_caller_role := public.get_my_role();
+  if v_caller_role not in ('admin', 'accounts') then
+    raise exception 'Unauthorized: Only Admin or Accounts can mark notice.';
+  end if;
+
+  select bed_id into v_bed_id
+  from public.bookings
+  where id = p_booking_id and status = 'active'
+  for update;
+
+  if not found then
+    raise exception 'Active booking not found.';
+  end if;
+
+  update public.bookings
+  set 
+    notice_date = p_notice_date,
+    move_out_date = p_expected_move_out_date,
+    updated_at = now()
+  where id = p_booking_id;
+
+  update public.beds
+  set status = 'notice', updated_at = now()
+  where id = v_bed_id;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    record_id,
+    new_data
+  ) values (
+    auth.uid(),
+    'tenant_notice',
+    'bookings',
+    p_booking_id,
+    jsonb_build_object(
+      'notice_date', p_notice_date,
+      'expected_move_out_date', p_expected_move_out_date,
+      'notes', p_notes
+    )
+  );
+
+  return json_build_object(
+    'success', true,
+    'booking_id', p_booking_id,
+    'bed_id', v_bed_id
+  );
+end;
+$$;
+
+create or replace function public.process_move_out_atomic(
+  p_booking_id uuid,
+  p_actual_move_out_date date,
+  p_deductions_amount numeric default 0,
+  p_deductions_reason text default null,
+  p_refund_amount numeric default 0,
+  p_refund_mode public.payment_mode default 'upi',
+  p_refund_reference text default null,
+  p_notes text default null
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_role public.app_role;
+  v_bed_id uuid;
+  v_booking record;
+begin
+  v_caller_role := public.get_my_role();
+  if v_caller_role not in ('admin', 'accounts') then
+    raise exception 'Unauthorized: Only Admin or Accounts can finalize move-out.';
+  end if;
+
+  select id, bed_id, status, deposit_amount into v_booking
+  from public.bookings
+  where id = p_booking_id
+  for update;
+
+  if not found then
+    raise exception 'Booking not found.';
+  end if;
+
+  if v_booking.status not in ('active', 'token', 'noc_cleared') then
+    raise exception 'Cannot move out booking with status %.', v_booking.status;
+  end if;
+
+  v_bed_id := v_booking.bed_id;
+
+  if p_refund_amount > 0 then
+    insert into public.payments (
+      booking_id,
+      type,
+      amount,
+      mode,
+      paid_on,
+      reference,
+      received_by,
+      notes
+    ) values (
+      p_booking_id,
+      'refund',
+      p_refund_amount,
+      p_refund_mode,
+      p_actual_move_out_date,
+      p_refund_reference,
+      auth.uid(),
+      coalesce(p_notes, 'Security deposit settlement refund')
+    );
+  end if;
+
+  update public.bookings
+  set 
+    status = 'moved_out',
+    move_out_date = p_actual_move_out_date,
+    updated_at = now()
+  where id = p_booking_id;
+
+  update public.beds
+  set status = 'vacant', updated_at = now()
+  where id = v_bed_id;
+
+  insert into public.audit_log (
+    actor_id,
+    action,
+    table_name,
+    record_id,
+    new_data
+  ) values (
+    auth.uid(),
+    'process_move_out',
+    'bookings',
+    p_booking_id,
+    jsonb_build_object(
+      'actual_move_out_date', p_actual_move_out_date,
+      'deductions', p_deductions_amount,
+      'deductions_reason', p_deductions_reason,
+      'refund_paid', p_refund_amount,
+      'bed_freed', v_bed_id
+    )
+  );
+
+  return json_build_object(
+    'success', true,
+    'booking_id', p_booking_id,
+    'bed_id', v_bed_id,
+    'status', 'moved_out'
+  );
+end;
+$$;

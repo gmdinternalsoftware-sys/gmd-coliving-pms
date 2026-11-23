@@ -147,3 +147,45 @@ export interface TokenWorkflowItem {
   created_by_name: string | null;
 }
 
+export interface RentDue {
+  id: string;
+  booking_id: string;
+  for_month: string;
+  due_date: string;
+  amount: number;
+  paid_amount: number;
+  status: "pending" | "partial" | "paid" | "overdue" | "waived";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DueOverviewItem {
+  due_id: string;
+  booking_id: string;
+  for_month: string;
+  due_date: string;
+  due_amount: number;
+  paid_amount: number;
+  balance_due: number;
+  calculated_status: "pending" | "partial" | "paid" | "overdue" | "waived";
+  days_overdue: number;
+  demand_generated_at: string;
+  client_id: string;
+  client_name: string;
+  client_phone1: string;
+  bed_id: string;
+  bed_label: string;
+  bed_status: BedStatus;
+  room_id: string;
+  room_no: string;
+  flat_id: string;
+  flat_name: string;
+  booking_status: BookingStatus;
+  agreed_rent: number;
+  deposit_amount: number;
+  move_in_date: string | null;
+  next_rent_due: string | null;
+  notice_date: string | null;
+}
+
+

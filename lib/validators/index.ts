@@ -213,5 +213,62 @@ export const confirmMoveInSchema = z.object({
 
 export type ConfirmMoveInInput = z.infer<typeof confirmMoveInSchema>;
 
+// =============================================================================
+// PHASE 5: PAYMENTS, DUES & MOVE-OUT SCHEMAS
+// =============================================================================
+
+export const paymentTypeSchema = z.enum([
+  "token",
+  "deposit",
+  "rent",
+  "electricity",
+  "opening_balance",
+  "refund",
+  "other",
+]);
+
+export const recordPaymentSchema = z.object({
+  booking_id: z.string().uuid("Invalid booking ID"),
+  rent_due_id: z.string().uuid("Invalid rent due ID").optional(),
+  type: paymentTypeSchema.default("rent"),
+  amount: z.coerce.number().min(1, "Payment amount must be greater than 0"),
+  mode: paymentModeSchema.default("upi"),
+  paid_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid payment date").default(() => new Date().toISOString().split("T")[0]),
+  for_month: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid month date").optional(),
+  reference: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+});
+
+export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+
+export const generateMonthlyRentSchema = z.object({
+  for_month: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, "Invalid billing month"),
+});
+
+export type GenerateMonthlyRentInput = z.infer<typeof generateMonthlyRentSchema>;
+
+export const setNoticeSchema = z.object({
+  booking_id: z.string().uuid("Invalid booking ID"),
+  notice_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid notice date"),
+  expected_move_out_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid expected move-out date"),
+  notes: z.string().trim().optional(),
+});
+
+export type SetNoticeInput = z.infer<typeof setNoticeSchema>;
+
+export const processMoveOutSchema = z.object({
+  booking_id: z.string().uuid("Invalid booking ID"),
+  actual_move_out_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid move-out date"),
+  deductions_amount: z.coerce.number().min(0, "Deductions cannot be negative").default(0),
+  deductions_reason: z.string().trim().optional(),
+  refund_amount: z.coerce.number().min(0, "Refund amount cannot be negative").default(0),
+  refund_mode: paymentModeSchema.default("upi"),
+  refund_reference: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+});
+
+export type ProcessMoveOutInput = z.infer<typeof processMoveOutSchema>;
+
+
 
 
