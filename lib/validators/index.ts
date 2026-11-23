@@ -296,6 +296,42 @@ export const caretakerSchema = z.object({
 
 export type CaretakerInput = z.infer<typeof caretakerSchema>;
 
+// Phase 6: Electricity Schemas
+export const roomReadingInputSchema = z.object({
+  room_id: z.string().uuid("Invalid room ID"),
+  prev: z.coerce.number().min(0, "Previous reading must be non-negative"),
+  curr: z.coerce.number().min(0, "Current reading must be non-negative"),
+});
+
+export const generateElectricityBillSchema = z
+  .object({
+    flat_id: z.string().uuid("Please select a flat"),
+    period_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid start date"),
+    period_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid end date"),
+    rate_per_unit: z.coerce.number().positive("Rate per unit must be greater than 0"),
+    common_prev: z.coerce.number().min(0, "Previous common reading must be non-negative"),
+    common_curr: z.coerce.number().min(0, "Current common reading must be non-negative"),
+    room_readings: z.array(roomReadingInputSchema).min(1, "At least one room reading is required"),
+  })
+  .refine((data) => data.common_curr >= data.common_prev, {
+    message: "Current common meter reading cannot be less than previous reading",
+    path: ["common_curr"],
+  });
+
+export type GenerateElectricityBillInput = z.infer<typeof generateElectricityBillSchema>;
+
+export const recordElectricityPaymentSchema = z.object({
+  due_id: z.string().uuid("Invalid due ID"),
+  amount: z.coerce.number().positive("Amount must be greater than 0"),
+  mode: paymentModeSchema.default("upi_gmd"),
+  paid_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid payment date"),
+  reference: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
+});
+
+export type RecordElectricityPaymentInput = z.infer<typeof recordElectricityPaymentSchema>;
+
+
 
 
 

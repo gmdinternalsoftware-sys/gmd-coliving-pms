@@ -178,7 +178,7 @@ create table audit_log (
 - [x] **Phase 3** Client profiles: searchable list, profile page (flat/bed, rent paid, phones, photo, masked Aadhaar), photo upload
 - [x] **Phase 4** Token workflow: sales token form, NOC queue, Accounts collection and move-in, status badges, "everyone can view" token list
 - [x] **Phase 5** Payments and dues: monthly rent generation, pending/overdue list, receipts (PDF), deposit refund on move-out
-- [ ] **Phase 6** Electricity: readings, bill calc, split, payment tracking
+- [x] **Phase 6** Electricity: readings, bill calc, split, payment tracking
 - [ ] **Phase 7** Reports and Excel export: dashboard, export sheets (All Beds, Occupied, Vacant, Dues)
 - [ ] **Phase 8** Hardening: audit review, role tests, backups, mobile QA, deploy, training
 

@@ -222,5 +222,86 @@ export interface Caretaker {
   flat_address?: string | null;
 }
 
+export interface ElectricityReading {
+  id: string;
+  flat_id: string;
+  room_id: string | null;
+  reading_date: string;
+  meter_type: "room" | "common";
+  previous_meter_value: number;
+  meter_value: number;
+  units_consumed: number;
+  photo_path: string | null;
+  entered_by: string | null;
+  created_at: string;
+}
+
+export interface ElectricityBill {
+  id: string;
+  flat_id: string;
+  period_start: string;
+  period_end: string;
+  rate: number;
+  units: number;
+  total_amount: number;
+  common_units: number;
+  common_amount: number;
+  rooms_total_units: number;
+  rooms_total_amount: number;
+  total_occupied_beds: number;
+  status: "draft" | "generated" | "finalized";
+  created_by: string | null;
+  created_at: string;
+  flat_name?: string;
+}
+
+export interface TenantElectricityDue {
+  id: string;
+  bill_id: string;
+  booking_id: string;
+  client_id: string;
+  room_id: string;
+  room_units: number;
+  room_share_count: number;
+  room_amount: number;
+  common_units: number;
+  common_share_count: number;
+  common_amount: number;
+  total_due: number;
+  paid_amount: number;
+  status: "pending" | "partial" | "paid" | "waived";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ElectricityDueOverview {
+  due_id: string;
+  bill_id: string;
+  booking_id: string;
+  client_id: string;
+  room_id: string;
+  room_units: number;
+  room_share_count: number;
+  room_amount: number;
+  common_units: number;
+  common_share_count: number;
+  common_amount: number;
+  total_due: number;
+  paid_amount: number;
+  balance_due: number;
+  status: "pending" | "partial" | "paid" | "waived";
+  created_at: string;
+  client_name: string;
+  client_phone: string;
+  room_no: string;
+  flat_id: string;
+  flat_name: string;
+  period_start: string;
+  period_end: string;
+  rate_per_unit: number;
+  bill_total_amount: number;
+}
+
+
 
 
