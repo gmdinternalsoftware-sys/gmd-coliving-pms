@@ -12,6 +12,7 @@ import {
   Ticket,
   CreditCard,
   Zap,
+  Wrench,
   BarChart3,
   Settings,
   LogOut,
@@ -50,6 +51,7 @@ const navItems: NavItem[] = [
   { label: "Tokens", href: "/dashboard/tokens", icon: Ticket },
   { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
   { label: "Electricity", href: "/dashboard/electricity", icon: Zap },
+  { label: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { label: "Reports", href: "/dashboard/reports", icon: BarChart3 },
   {
     label: "Employees",
