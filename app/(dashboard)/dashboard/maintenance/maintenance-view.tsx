@@ -166,30 +166,30 @@ export function MaintenanceView({
   }
 
   return (
-    <div className="space-y-3 flex flex-col h-[calc(100vh-5.5rem)]">
+    <div className="space-y-4 flex flex-col h-[calc(100vh-8rem)]">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-1">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
             <Wrench className="h-6 w-6 text-amber-500" />
             Maintenance & Complaints Register
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Live complaints tracker with tab navigation and view access for all staff
           </p>
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Embed Mode Switcher */}
-          <div className="flex items-center rounded-lg border bg-card p-0.5 text-xs">
+          <div className="flex items-center rounded-lg border bg-card p-1 text-xs shadow-sm">
             <button
               type="button"
               onClick={() => {
                 setEmbedMode("embedded");
                 setIframeKey((k) => k + 1);
               }}
-              className={`rounded px-2.5 py-1 font-medium transition-colors ${
+              className={`rounded px-3 py-1.5 font-medium transition-colors ${
                 embedMode === "embedded"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -204,7 +204,7 @@ export function MaintenanceView({
                 setEmbedMode("preview");
                 setIframeKey((k) => k + 1);
               }}
-              className={`rounded px-2.5 py-1 font-medium transition-colors ${
+              className={`rounded px-3 py-1.5 font-medium transition-colors ${
                 embedMode === "preview"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -218,7 +218,7 @@ export function MaintenanceView({
           <button
             type="button"
             onClick={openAddModal}
-            className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:bg-muted transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3.5 py-2 text-xs font-semibold text-foreground shadow-sm hover:bg-muted transition-colors"
           >
             <Plus className="h-3.5 w-3.5 text-emerald-600" />
             Add Another Sheet
@@ -229,7 +229,7 @@ export function MaintenanceView({
               href={activeSheet.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               Open in Google Sheets
@@ -239,10 +239,10 @@ export function MaintenanceView({
       </div>
 
       {/* Sheet Navigation Tabs Bar (PMS Header) */}
-      <div className="flex items-center justify-between border-b border-border bg-card/50 rounded-t-lg px-2 pt-1 overflow-x-auto gap-2">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 flex-1">
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 mr-1 flex items-center gap-1 whitespace-nowrap">
-            <FileSpreadsheet className="h-3.5 w-3.5 text-primary" />
+      <div className="flex items-center justify-between border-b border-border bg-card/60 rounded-t-xl px-3 pt-2 overflow-x-auto gap-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 flex-1">
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 mr-1 flex items-center gap-1.5 whitespace-nowrap">
+            <FileSpreadsheet className="h-4 w-4 text-primary" />
             Sheets:
           </span>
 
@@ -251,7 +251,7 @@ export function MaintenanceView({
             return (
               <div
                 key={sheet.id}
-                className={`group flex items-center gap-1.5 rounded-t-lg border-t border-l border-r px-3 py-2 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                className={`group flex items-center gap-2 rounded-t-lg border-t border-l border-r px-4 py-2.5 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
                   isActive
                     ? "bg-background text-primary border-border shadow-sm font-semibold"
                     : "bg-muted/40 text-muted-foreground border-transparent hover:bg-muted/80 hover:text-foreground"
@@ -270,7 +270,7 @@ export function MaintenanceView({
                     e.stopPropagation();
                     openEditModal(sheet);
                   }}
-                  className="opacity-60 hover:opacity-100 p-0.5 rounded hover:bg-muted"
+                  className="opacity-60 hover:opacity-100 p-1 rounded hover:bg-muted"
                   title="Change link or rename"
                 >
                   <Edit2 className="h-3 w-3" />
@@ -283,7 +283,7 @@ export function MaintenanceView({
                       e.stopPropagation();
                       handleDeleteSheet(sheet.id);
                     }}
-                    className="opacity-40 hover:opacity-100 hover:text-destructive p-0.5 rounded"
+                    className="opacity-40 hover:opacity-100 hover:text-destructive p-1 rounded"
                     title="Remove sheet"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -296,7 +296,7 @@ export function MaintenanceView({
           <button
             type="button"
             onClick={openAddModal}
-            className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground whitespace-nowrap ml-1"
+            className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground whitespace-nowrap ml-1"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Add Sheet</span>
@@ -304,11 +304,11 @@ export function MaintenanceView({
         </div>
 
         {/* Quick Refresh */}
-        <div className="flex items-center gap-2 pb-1 text-xs">
+        <div className="flex items-center gap-2 pb-1.5 text-xs">
           <button
             type="button"
             onClick={() => setIframeKey((k) => k + 1)}
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-muted"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 px-3 py-1.5 rounded hover:bg-muted"
             title="Reload sheet"
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -329,7 +329,7 @@ export function MaintenanceView({
         />
 
         {/* Bottom Helper Bar */}
-        <div className="flex items-center justify-between bg-muted/60 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
+        <div className="flex items-center justify-between bg-muted/60 border-t px-4 py-2.5 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-foreground">{activeSheet?.name}</span>
             <span>&bull;</span>
