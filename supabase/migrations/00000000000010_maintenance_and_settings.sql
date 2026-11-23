@@ -40,7 +40,7 @@ create policy "Admin and maintenance can update app_settings"
 insert into public.app_settings (key, value, description)
 values (
   'maintenance_google_sheet_url',
-  'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing',
+  'https://docs.google.com/spreadsheets/d/157_rS0_yUSHnTWur9qebP9-CDFqI2_IL_YjLCe1YMbI/edit?usp=sharing',
   'URL of the shared Google Sheet or Form for Maintenance Complaints tracking'
 )
 on conflict (key) do nothing;

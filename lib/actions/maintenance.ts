@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 const DEFAULT_URL =
-  "https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing";
+  "https://docs.google.com/spreadsheets/d/157_rS0_yUSHnTWur9qebP9-CDFqI2_IL_YjLCe1YMbI/edit?usp=sharing";
 
 /**
  * Get the configured Google Sheet / complaints URL
@@ -77,6 +77,12 @@ export async function updateMaintenanceSheetUrlAction(newUrl: string): Promise<{
 
     if (error) {
       console.error("Failed to update maintenance sheet URL:", error);
+      if (error.message?.includes("app_settings")) {
+        return {
+          success: false,
+          error: "Table 'app_settings' not found in Supabase. Please run migration 00000000000010_maintenance_and_settings.sql in your Supabase SQL Editor.",
+        };
+      }
       return { success: false, error: error.message };
     }
 
