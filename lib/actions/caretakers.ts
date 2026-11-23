@@ -103,3 +103,52 @@ export async function deleteCaretakerAction(id: string) {
     return { success: false, error: err.message || "Failed to delete caretaker." };
   }
 }
+
+/**
+ * Update an existing caretaker (Admin only).
+ */
+export async function updateCaretakerAction(id: string, input: CaretakerInput) {
+  try {
+    const { supabase } = await verifyAuth(["admin"]);
+
+    if (!id) {
+      return { success: false, error: "Invalid caretaker ID." };
+    }
+
+    const validated = caretakerSchema.safeParse(input);
+    if (!validated.success) {
+      return {
+        success: false,
+        error: validated.error.errors.map((e) => e.message).join(", "),
+      };
+    }
+
+    const data = validated.data;
+
+    const { data: updated, error: updateError } = await supabase
+      .from("caretakers")
+      .update({
+        flat_id: data.flat_id,
+        name: data.name.trim(),
+        phone: data.phone.trim(),
+        alternate_phone: data.alternate_phone?.trim() || null,
+        notes: data.notes?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("Update caretaker error:", updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    revalidatePath("/dashboard/caretakers");
+
+    return { success: true, data: updated };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to update caretaker." };
+  }
+}
+
