@@ -152,7 +152,17 @@ export type ClientCorrectionInput = z.infer<typeof clientCorrectionSchema>;
 // PHASE 4: TOKEN WORKFLOW SCHEMAS
 // =============================================================================
 
-export const paymentModeSchema = z.enum(["cash", "upi", "bank_transfer", "card", "other"]);
+export const paymentModeSchema = z.enum([
+  "upi_serenity",
+  "upi_gmd",
+  "upi_platinum_s",
+  "cash",
+  "bank_transfer",
+  "upi",
+  "card",
+  "other",
+]);
+
 
 export const createTokenSchema = z.object({
   full_name: z.string().min(2, "Client name must be at least 2 characters"),
@@ -268,6 +278,24 @@ export const processMoveOutSchema = z.object({
 });
 
 export type ProcessMoveOutInput = z.infer<typeof processMoveOutSchema>;
+
+// Caretaker Schema
+export const caretakerSchema = z.object({
+  flat_id: z.string().uuid("Please select a flat"),
+  name: z.string().min(2, "Caretaker name must be at least 2 characters"),
+  phone: indianPhoneSchema,
+  alternate_phone: z
+    .string()
+    .trim()
+    .optional()
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: "Alternate phone must be 10 digits",
+    }),
+  notes: z.string().trim().optional(),
+});
+
+export type CaretakerInput = z.infer<typeof caretakerSchema>;
+
 
 
 

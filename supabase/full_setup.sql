@@ -1576,3 +1576,50 @@ begin
   );
 end;
 $$;
+
+
+-- =============================================================================
+-- 16. CARETAKERS & EXTENDED PAYMENT MODES
+-- =============================================================================
+
+alter type public.payment_mode add value if not exists 'upi_serenity';
+alter type public.payment_mode add value if not exists 'upi_gmd';
+alter type public.payment_mode add value if not exists 'upi_platinum_s';
+
+create table if not exists public.caretakers (
+  id uuid primary key default gen_random_uuid(),
+  flat_id uuid not null references public.flats(id) on delete cascade,
+  name text not null,
+  phone text not null check (phone ~ '^\d{10}$'),
+  alternate_phone text check (alternate_phone is null or alternate_phone ~ '^\d{10}$'),
+  notes text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists trg_audit_caretakers on public.caretakers;
+create trigger trg_audit_caretakers after insert or update or delete on public.caretakers
+  for each row execute function public.audit_trigger_func();
+
+alter table public.caretakers enable row level security;
+
+drop policy if exists "Active profiles can read caretakers" on public.caretakers;
+create policy "Active profiles can read caretakers"
+  on public.caretakers for select
+  using (public.is_active_profile());
+
+drop policy if exists "Admin can insert caretakers" on public.caretakers;
+create policy "Admin can insert caretakers"
+  on public.caretakers for insert
+  with check (public.get_my_role() = 'admin');
+
+drop policy if exists "Admin can update caretakers" on public.caretakers;
+create policy "Admin can update caretakers"
+  on public.caretakers for update
+  using (public.get_my_role() = 'admin');
+
+drop policy if exists "Admin can delete caretakers" on public.caretakers;
+create policy "Admin can delete caretakers"
+  on public.caretakers for delete
+  using (public.get_my_role() = 'admin');

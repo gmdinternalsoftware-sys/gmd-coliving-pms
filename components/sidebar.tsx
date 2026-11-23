@@ -20,6 +20,7 @@ import {
   UserPlus,
   UserCheck,
   FileSpreadsheet,
+  UserCog,
 } from "lucide-react";
 
 interface NavItem {
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Bed Inventory", href: "/dashboard/beds", icon: BedDouble },
   { label: "Clients", href: "/dashboard/clients", icon: Users },
+  { label: "Caretakers", href: "/dashboard/caretakers", icon: UserCog },
   {
     label: "Add Tenant",
     href: "/dashboard/tenants/add",

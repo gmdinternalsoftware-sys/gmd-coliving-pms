@@ -5,7 +5,27 @@ export type BookingStatus = "token" | "noc_hold" | "noc_cleared" | "active" | "r
 export type BookingSource = "token" | "existing";
 export type NocStatus = "pending" | "cleared" | "hold" | "rejected";
 export type PaymentType = "token" | "deposit" | "rent" | "electricity" | "opening_balance" | "refund" | "other";
-export type PaymentMode = "cash" | "upi" | "bank_transfer" | "card" | "other";
+export type PaymentMode = 
+  | "upi_serenity"
+  | "upi_gmd"
+  | "upi_platinum_s"
+  | "cash"
+  | "bank_transfer"
+  | "upi"
+  | "card"
+  | "other";
+
+export const PAYMENT_MODE_LABELS: Record<string, string> = {
+  upi_serenity: "UPI - Serenity",
+  upi_gmd: "UPI - GMD",
+  upi_platinum_s: "UPI - Platinum S",
+  cash: "Cash",
+  bank_transfer: "Bank transfer",
+  upi: "UPI",
+  card: "Card",
+  other: "Other",
+};
+
 
 export interface Profile {
   id: string;
@@ -187,5 +207,20 @@ export interface DueOverviewItem {
   next_rent_due: string | null;
   notice_date: string | null;
 }
+
+export interface Caretaker {
+  id: string;
+  flat_id: string;
+  name: string;
+  phone: string;
+  alternate_phone: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  flat_name?: string;
+  flat_address?: string | null;
+}
+
 
 

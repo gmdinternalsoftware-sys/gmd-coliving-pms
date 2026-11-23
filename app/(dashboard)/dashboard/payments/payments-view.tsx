@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { DueOverviewItem, AppRole, Flat, PaymentMode, PaymentType } from "@/lib/types/database";
+import { PAYMENT_MODE_LABELS } from "@/lib/types/database";
 import { formatINR } from "@/lib/utils";
 import {
   recordPaymentAction,
@@ -98,7 +99,7 @@ export function PaymentsView({
   const [payRentDueId, setPayRentDueId] = useState<string | undefined>(undefined);
   const [payType, setPayType] = useState<PaymentType>("rent");
   const [payAmount, setPayAmount] = useState<number>(0);
-  const [payMode, setPayMode] = useState<PaymentMode>("upi");
+  const [payMode, setPayMode] = useState<PaymentMode>("upi_gmd");
   const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
   const [payForMonth, setPayForMonth] = useState("");
   const [payRef, setPayRef] = useState("");
@@ -131,7 +132,7 @@ export function PaymentsView({
   const [deductionsAmount, setDeductionsAmount] = useState<number>(0);
   const [deductionsReason, setDeductionsReason] = useState("");
   const [refundAmount, setRefundAmount] = useState<number>(0);
-  const [refundMode, setRefundMode] = useState<PaymentMode>("upi");
+  const [refundMode, setRefundMode] = useState<PaymentMode>("upi_gmd");
   const [refundRef, setRefundRef] = useState("");
   const [moveOutNotes, setMoveOutNotes] = useState("");
   const [moveOutLoading, setMoveOutLoading] = useState(false);
@@ -645,7 +646,9 @@ export function PaymentsView({
                       </td>
 
                       <td className="px-4 py-3">
-                        <span className="uppercase font-semibold">{item.mode || "UPI"}</span>
+                        <span className="font-semibold text-foreground">
+                          {PAYMENT_MODE_LABELS[item.mode || ""] || item.mode || "UPI"}
+                        </span>
                         {item.reference && (
                           <span className="text-[11px] text-muted-foreground block truncate max-w-[120px]">
                             {item.reference}
@@ -831,10 +834,11 @@ export function PaymentsView({
                     onChange={(e) => setPayMode(e.target.value as PaymentMode)}
                     className="w-full text-xs p-2 rounded-lg border bg-background"
                   >
-                    <option value="upi">UPI</option>
-                    <option value="bank_transfer">Bank Transfer / NEFT</option>
+                    <option value="upi_serenity">UPI - Serenity</option>
+                    <option value="upi_gmd">UPI - GMD</option>
+                    <option value="upi_platinum_s">UPI - Platinum S</option>
                     <option value="cash">Cash</option>
-                    <option value="card">Card</option>
+                    <option value="bank_transfer">Bank transfer</option>
                   </select>
                 </div>
 
@@ -1138,9 +1142,11 @@ export function PaymentsView({
                     onChange={(e) => setRefundMode(e.target.value as PaymentMode)}
                     className="w-full text-xs p-2 rounded-lg border bg-background"
                   >
-                    <option value="upi">UPI</option>
-                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="upi_serenity">UPI - Serenity</option>
+                    <option value="upi_gmd">UPI - GMD</option>
+                    <option value="upi_platinum_s">UPI - Platinum S</option>
                     <option value="cash">Cash</option>
+                    <option value="bank_transfer">Bank transfer</option>
                   </select>
                 </div>
               </div>
@@ -1230,8 +1236,8 @@ export function PaymentsView({
 
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Payment Mode:</span>
-                <span className="uppercase font-semibold">
-                  {receiptPayment.mode || "UPI"}
+                <span className="font-semibold text-foreground">
+                  {PAYMENT_MODE_LABELS[receiptPayment.mode || ""] || receiptPayment.mode || "UPI"}
                 </span>
               </div>
 

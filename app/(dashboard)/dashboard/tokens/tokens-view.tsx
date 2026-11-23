@@ -64,7 +64,7 @@ export function TokensView({
   const [selectedBedId, setSelectedBedId] = useState("");
   const [agreedRent, setAgreedRent] = useState<number>(0);
   const [tokenAmount, setTokenAmount] = useState<number>(5000);
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>("upi");
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("upi_gmd");
   const [paymentRef, setPaymentRef] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
   const [tokenNotes, setTokenNotes] = useState("");
@@ -80,10 +80,10 @@ export function TokensView({
   // Form states for Move-In
   const [actualMoveInDate, setActualMoveInDate] = useState(new Date().toISOString().split("T")[0]);
   const [depositAmount, setDepositAmount] = useState<number>(0);
-  const [depositMode, setDepositMode] = useState<PaymentMode>("upi");
+  const [depositMode, setDepositMode] = useState<PaymentMode>("upi_gmd");
   const [depositRef, setDepositRef] = useState("");
   const [rentAmount, setRentAmount] = useState<number>(0);
-  const [rentMode, setRentMode] = useState<PaymentMode>("upi");
+  const [rentMode, setRentMode] = useState<PaymentMode>("upi_gmd");
   const [rentRef, setRentRef] = useState("");
   const [nextRentDue, setNextRentDue] = useState("");
   const [moveInNotes, setMoveInNotes] = useState("");
@@ -955,11 +955,11 @@ export function TokensView({
                       onChange={(e) => setPaymentMode(e.target.value as PaymentMode)}
                       className="w-full text-xs p-2 rounded-lg border bg-background"
                     >
-                      <option value="upi">UPI (GPay / PhonePe / Paytm)</option>
+                      <option value="upi_serenity">UPI - Serenity</option>
+                      <option value="upi_gmd">UPI - GMD</option>
+                      <option value="upi_platinum_s">UPI - Platinum S</option>
                       <option value="cash">Cash</option>
-                      <option value="bank_transfer">Bank Transfer / NEFT</option>
-                      <option value="card">Card</option>
-                      <option value="other">Other</option>
+                      <option value="bank_transfer">Bank transfer</option>
                     </select>
                   </div>
 
@@ -1232,10 +1232,11 @@ export function TokensView({
                       onChange={(e) => setDepositMode(e.target.value as PaymentMode)}
                       className="w-full text-xs p-2 rounded-lg border bg-background"
                     >
-                      <option value="upi">UPI</option>
-                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="upi_serenity">UPI - Serenity</option>
+                      <option value="upi_gmd">UPI - GMD</option>
+                      <option value="upi_platinum_s">UPI - Platinum S</option>
                       <option value="cash">Cash</option>
-                      <option value="card">Card</option>
+                      <option value="bank_transfer">Bank transfer</option>
                     </select>
                   </div>
                   <div className="col-span-2">
@@ -1271,10 +1272,11 @@ export function TokensView({
                       onChange={(e) => setRentMode(e.target.value as PaymentMode)}
                       className="w-full text-xs p-2 rounded-lg border bg-background"
                     >
-                      <option value="upi">UPI</option>
-                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="upi_serenity">UPI - Serenity</option>
+                      <option value="upi_gmd">UPI - GMD</option>
+                      <option value="upi_platinum_s">UPI - Platinum S</option>
                       <option value="cash">Cash</option>
-                      <option value="card">Card</option>
+                      <option value="bank_transfer">Bank transfer</option>
                     </select>
                   </div>
                   <div className="col-span-2">
