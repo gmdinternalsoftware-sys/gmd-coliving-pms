@@ -163,7 +163,7 @@ export function ClientsView({ initialClients, isAdmin }: ClientsViewProps) {
       </div>
 
       {/* Filter Tabs & Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border bg-card p-4 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border bg-card p-5 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 border-b sm:border-b-0 pb-2 sm:pb-0">
           <button
             onClick={() => setActiveTab("all")}

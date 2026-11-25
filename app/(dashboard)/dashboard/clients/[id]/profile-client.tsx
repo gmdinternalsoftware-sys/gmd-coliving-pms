@@ -410,7 +410,7 @@ export function ProfileClient({
       {/* TAB 2: PAYMENTS */}
       {tab === "payments" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg border bg-card shadow-sm">
+          <div className="flex items-center justify-between p-5 sm:p-6 rounded-lg border bg-card shadow-sm">
             <div>
               <span className="text-xs text-muted-foreground">
                 Total Collections

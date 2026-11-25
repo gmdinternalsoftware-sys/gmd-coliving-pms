@@ -391,7 +391,7 @@ export function BulkImportClient({
       {!result && rows.length > 0 && (
         <div className="space-y-4 animate-in fade-in">
           {/* Summary Chips & Commit Button */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border bg-card shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 sm:p-6 rounded-lg border bg-card shadow-sm">
             <div className="flex items-center gap-3 text-sm">
               <span className="font-semibold">
                 Total Rows: {rows.length}

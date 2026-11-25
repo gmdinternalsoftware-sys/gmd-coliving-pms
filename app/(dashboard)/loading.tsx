@@ -11,9 +11,9 @@ export default function DashboardLoading() {
       </div>
 
       {/* 4 Metric Cards Skeleton */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4 sm:gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+          <div key={i} className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div className="h-3 w-20 rounded bg-muted" />
               <div className="h-4 w-4 rounded-full bg-muted" />
@@ -34,7 +34,7 @@ export default function DashboardLoading() {
       </div>
 
       {/* Content Table / List Skeleton */}
-      <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+      <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm space-y-3">
         <div className="flex items-center justify-between border-b pb-3">
           <div className="h-4 w-28 rounded bg-muted" />
           <div className="h-4 w-16 rounded bg-muted" />

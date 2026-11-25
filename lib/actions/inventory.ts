@@ -3,9 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   flatSchema,
+  flatWithRoomsSchema,
   roomSchema,
   bedSchema,
   type FlatInput,
+  type FlatWithRoomsInput,
   type RoomInput,
   type BedInput,
 } from "@/lib/validators";
@@ -37,9 +39,9 @@ async function verifyAdmin() {
 // =============================================================================
 // FLATS
 // =============================================================================
-export async function createFlatAction(input: FlatInput) {
+export async function createFlatAction(input: FlatInput | FlatWithRoomsInput) {
   const { supabase } = await verifyAdmin();
-  const validated = flatSchema.safeParse(input);
+  const validated = flatWithRoomsSchema.safeParse(input);
 
   if (!validated.success) {
     return {
@@ -48,19 +50,115 @@ export async function createFlatAction(input: FlatInput) {
     };
   }
 
-  const { error } = await supabase.from("flats").insert({
-    name: validated.data.name.trim(),
-    address: validated.data.address?.trim() || null,
-    owner_name: validated.data.owner_name?.trim() || null,
-    notes: validated.data.notes?.trim() || null,
-    is_active: validated.data.is_active,
-  });
+  const roomsInput = validated.data.rooms || [];
 
-  if (error) {
-    return { success: false, error: error.message };
+  // Validate no duplicate room_no within the new flat, and no duplicate bed_label within a room
+  const seenRooms = new Set<string>();
+  for (const r of roomsInput) {
+    const rKey = r.room_no.trim().toLowerCase();
+    if (seenRooms.has(rKey)) {
+      return {
+        success: false,
+        error: `Duplicate room number "${r.room_no}" in this flat.`,
+      };
+    }
+    seenRooms.add(rKey);
+
+    const seenBeds = new Set<string>();
+    for (const b of r.beds || []) {
+      const bKey = b.bed_label.trim().toLowerCase();
+      if (seenBeds.has(bKey)) {
+        return {
+          success: false,
+          error: `Duplicate bed label "${b.bed_label}" in Room ${r.room_no}.`,
+        };
+      }
+      seenBeds.add(bKey);
+    }
+  }
+
+  // 1. Insert Flat
+  const { data: createdFlat, error: flatError } = await supabase
+    .from("flats")
+    .insert({
+      name: validated.data.name.trim(),
+      address: validated.data.address?.trim() || null,
+      owner_name: validated.data.owner_name?.trim() || null,
+      notes: validated.data.notes?.trim() || null,
+      is_active: validated.data.is_active,
+    })
+    .select("id")
+    .single();
+
+  if (flatError || !createdFlat) {
+    return { success: false, error: flatError?.message || "Failed to create flat." };
+  }
+
+  // 2. Insert Rooms & Beds if provided
+  if (roomsInput.length > 0) {
+    const { data: createdRooms, error: roomsError } = await supabase
+      .from("rooms")
+      .insert(
+        roomsInput.map((r) => ({
+          flat_id: createdFlat.id,
+          room_no: r.room_no.trim(),
+          sharing_type: r.sharing_type,
+          is_active: r.is_active,
+        }))
+      )
+      .select("id, room_no");
+
+    if (roomsError || !createdRooms) {
+      // Rollback flat so no partial orphan flat remains
+      await supabase.from("flats").delete().eq("id", createdFlat.id);
+      return {
+        success: false,
+        error: roomsError?.message || "Failed to create rooms for flat.",
+      };
+    }
+
+    // Map room_no -> created room id
+    const roomIdByNo = new Map<string, string>();
+    createdRooms.forEach((cr) => {
+      roomIdByNo.set(cr.room_no.trim().toLowerCase(), cr.id);
+    });
+
+    const bedsToInsert: Array<{
+      room_id: string;
+      bed_label: string;
+      base_price: number;
+      status: BedInput["status"];
+    }> = [];
+
+    for (const r of roomsInput) {
+      const createdRoomId = roomIdByNo.get(r.room_no.trim().toLowerCase());
+      if (!createdRoomId) continue;
+      for (const b of r.beds || []) {
+        bedsToInsert.push({
+          room_id: createdRoomId,
+          bed_label: b.bed_label.trim(),
+          base_price: b.base_price,
+          status: b.status || "vacant",
+        });
+      }
+    }
+
+    if (bedsToInsert.length > 0) {
+      const { error: bedsError } = await supabase.from("beds").insert(bedsToInsert);
+      if (bedsError) {
+        // Rollback created rooms and flat
+        await supabase.from("rooms").delete().eq("flat_id", createdFlat.id);
+        await supabase.from("flats").delete().eq("id", createdFlat.id);
+        return {
+          success: false,
+          error: bedsError.message || "Failed to create beds for flat.",
+        };
+      }
+    }
   }
 
   revalidatePath("/dashboard/beds");
+  revalidatePath("/dashboard");
   return { success: true };
 }
 

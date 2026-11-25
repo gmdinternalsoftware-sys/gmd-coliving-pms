@@ -84,6 +84,30 @@ export const bedSchema = z.object({
 
 export type BedInput = z.infer<typeof bedSchema>;
 
+// Nested Flat + Rooms + Beds Schema (used when adding rooms/beds during flat creation)
+export const nestedBedInputSchema = z.object({
+  bed_label: z.string().trim().min(1, "Bed label is required (e.g. A, B, 1, 2)"),
+  base_price: z.coerce.number().min(0, "Base price must be a positive amount"),
+  status: bedStatusSchema.default("vacant"),
+});
+
+export const nestedRoomInputSchema = z.object({
+  room_no: z.string().trim().min(1, "Room number is required"),
+  sharing_type: z.coerce
+    .number()
+    .int()
+    .min(1, "Sharing type must be between 1 and 10")
+    .max(10, "Sharing type must be between 1 and 10"),
+  is_active: z.boolean().default(true),
+  beds: z.array(nestedBedInputSchema).default([]),
+});
+
+export const flatWithRoomsSchema = flatSchema.extend({
+  rooms: z.array(nestedRoomInputSchema).default([]),
+});
+
+export type FlatWithRoomsInput = z.infer<typeof flatWithRoomsSchema>;
+
 // =============================================================================
 // PHASE 2: EXISTING TENANTS & CLIENTS
 // =============================================================================

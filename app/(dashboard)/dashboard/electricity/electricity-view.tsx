@@ -335,13 +335,13 @@ export function ElectricityView({
       </div>
 
       {/* Top Metrics Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4 sm:gap-4">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Pending Electricity</span>
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
           </div>
-          <div className="mt-2 text-xl sm:text-2xl font-bold text-foreground">
+          <div className="mt-2 text-lg sm:text-2xl font-bold text-foreground truncate">
             {formatINR(metrics.pendingAmount)}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
@@ -349,34 +349,34 @@ export function ElectricityView({
           </p>
         </div>
 
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Total Collected</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
           </div>
-          <div className="mt-2 text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+          <div className="mt-2 text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 truncate">
             {formatINR(metrics.collectedTotal)}
           </div>
           <p className="text-xs text-muted-foreground mt-1">Received in ledger</p>
         </div>
 
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Total Units Billed</span>
-            <Zap className="h-4 w-4 text-blue-500" />
+            <Zap className="h-4 w-4 text-blue-500 shrink-0" />
           </div>
-          <div className="mt-2 text-xl sm:text-2xl font-bold text-foreground">
+          <div className="mt-2 text-lg sm:text-2xl font-bold text-foreground truncate">
             {metrics.totalUnits.toFixed(1)} kWh
           </div>
           <p className="text-xs text-muted-foreground mt-1">Across all properties</p>
         </div>
 
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
             <span>Billing Runs</span>
-            <Calculator className="h-4 w-4 text-purple-500" />
+            <Calculator className="h-4 w-4 text-purple-500 shrink-0" />
           </div>
-          <div className="mt-2 text-xl sm:text-2xl font-bold text-foreground">{bills.length}</div>
+          <div className="mt-2 text-lg sm:text-2xl font-bold text-foreground">{bills.length}</div>
           <p className="text-xs text-muted-foreground mt-1">Properties billed</p>
         </div>
       </div>
@@ -480,7 +480,7 @@ export function ElectricityView({
                 return (
                   <div
                     key={due.due_id}
-                    className="rounded-xl border bg-card p-4 shadow-sm hover:border-primary/40 transition-colors"
+                    className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm hover:border-primary/40 transition-colors"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       {/* Left: Tenant & Location */}
@@ -594,7 +594,7 @@ export function ElectricityView({
           ) : (
             <div className="space-y-3">
               {bills.map((bill) => (
-                <div key={bill.id} className="rounded-xl border bg-card p-4 shadow-sm">
+                <div key={bill.id} className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="flex items-center gap-2">
@@ -661,7 +661,7 @@ export function ElectricityView({
               {payments.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-xl border bg-card p-4 shadow-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">

@@ -121,7 +121,7 @@ export function EmployeeDirectory({
           {employees.map((emp) => {
             const isMe = emp.id === currentUserId;
             return (
-              <div key={emp.id} className="p-4 space-y-3">
+              <div key={emp.id} className="p-5 sm:p-6 space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-semibold text-base">{emp.full_name}</p>

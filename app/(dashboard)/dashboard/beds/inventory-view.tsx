@@ -173,7 +173,7 @@ export function InventoryView({
       </div>
 
       {/* Filter Toolbar */}
-      <div className="space-y-3 rounded-lg border bg-card p-4 shadow-sm">
+      <div className="space-y-3 rounded-lg border bg-card p-5 sm:p-6 shadow-sm">
         {/* Status Filter Chips */}
         <div className="flex flex-wrap gap-2 pb-2 border-b">
           {(
@@ -278,7 +278,7 @@ export function InventoryView({
             return (
               <div
                 key={bed.id}
-                className={`relative rounded-lg border p-4 bg-card shadow-sm transition-all hover:shadow-md flex flex-col justify-between ${conf.border}`}
+                className={`relative rounded-lg border p-5 sm:p-6 bg-card shadow-sm transition-all hover:shadow-md flex flex-col justify-between ${conf.border}`}
               >
                 {/* Header: Bed & Status Badge */}
                 <div>

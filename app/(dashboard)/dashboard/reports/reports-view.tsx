@@ -148,7 +148,7 @@ export function ReportsView({
       </div>
 
       {/* Property Filter & Quick Export Ribbon */}
-      <div className="rounded-xl border bg-card p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Building className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">Filter by Property:</span>

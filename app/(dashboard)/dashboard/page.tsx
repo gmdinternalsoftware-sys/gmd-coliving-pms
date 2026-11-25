@@ -65,15 +65,15 @@ export default async function DashboardPage() {
       </div>
 
       {/* High-Level Metric Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4 sm:gap-4">
         {/* Card 1: Occupancy Rate */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm flex flex-col justify-between">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
             <span>Occupancy Rate</span>
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
+            <TrendingUp className="h-4 w-4 text-emerald-500 shrink-0" />
           </div>
           <div className="my-2">
-            <div className="text-2xl font-bold text-foreground">{occupancyRate}%</div>
+            <div className="text-xl sm:text-2xl font-bold text-foreground">{occupancyRate}%</div>
             <div className="w-full bg-muted rounded-full h-1.5 mt-2 overflow-hidden">
               <div
                 className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500"
@@ -87,13 +87,13 @@ export default async function DashboardPage() {
         </div>
 
         {/* Card 2: Vacant Inventory */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm flex flex-col justify-between">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
             <span>Vacant Beds</span>
-            <BedDouble className="h-4 w-4 text-blue-500" />
+            <BedDouble className="h-4 w-4 text-blue-500 shrink-0" />
           </div>
           <div className="my-2">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
               {vacantBeds}
             </div>
           </div>
@@ -106,13 +106,13 @@ export default async function DashboardPage() {
         </div>
 
         {/* Card 3: Collections This Month */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm flex flex-col justify-between">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
             <span>Collected This Month</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
           </div>
           <div className="my-2">
-            <div className="text-xl sm:text-2xl font-bold text-foreground">
+            <div className="text-lg sm:text-2xl font-bold text-foreground truncate">
               {formatINR(collectionsThisMonth)}
             </div>
           </div>
@@ -122,13 +122,13 @@ export default async function DashboardPage() {
         </div>
 
         {/* Card 4: Total Overdue */}
-        <div className="rounded-xl border bg-card p-4 shadow-sm flex flex-col justify-between">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
             <span>Total Overdue</span>
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
           </div>
           <div className="my-2">
-            <div className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">
+            <div className="text-lg sm:text-2xl font-bold text-amber-600 dark:text-amber-400 truncate">
               {formatINR(totalOverdue)}
             </div>
           </div>
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
       {/* Second Row: Tokens This Month & Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Tokens Highlight Card */}
-        <div className="rounded-xl border bg-card p-5 shadow-sm space-y-3">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-sm text-foreground flex items-center gap-2">
               <Ticket className="h-4 w-4 text-primary" />
@@ -171,16 +171,16 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick Operations Matrix */}
-        <div className="rounded-xl border bg-card p-5 shadow-sm space-y-3 md:col-span-2">
+        <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm space-y-3 md:col-span-2">
           <span className="font-semibold text-sm text-foreground flex items-center gap-2">
             <CreditCard className="h-4 w-4 text-primary" />
             Quick Department Shortcuts
           </span>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
             <Link
               href="/dashboard/tokens"
-              className="rounded-lg border p-3 hover:bg-muted/50 transition-colors text-center space-y-1"
+              className="rounded-lg border p-4 sm:p-4 hover:bg-muted/50 transition-colors text-center space-y-1.5"
             >
               <Ticket className="h-5 w-5 mx-auto text-primary" />
               <div className="font-medium text-xs text-foreground">New Token</div>
@@ -189,7 +189,7 @@ export default async function DashboardPage() {
 
             <Link
               href="/dashboard/payments"
-              className="rounded-lg border p-3 hover:bg-muted/50 transition-colors text-center space-y-1"
+              className="rounded-lg border p-4 sm:p-4 hover:bg-muted/50 transition-colors text-center space-y-1.5"
             >
               <CreditCard className="h-5 w-5 mx-auto text-emerald-600" />
               <div className="font-medium text-xs text-foreground">Collect Rent</div>
@@ -198,7 +198,7 @@ export default async function DashboardPage() {
 
             <Link
               href="/dashboard/electricity"
-              className="rounded-lg border p-3 hover:bg-muted/50 transition-colors text-center space-y-1"
+              className="rounded-lg border p-4 sm:p-4 hover:bg-muted/50 transition-colors text-center space-y-1.5"
             >
               <Zap className="h-5 w-5 mx-auto text-amber-500" />
               <div className="font-medium text-xs text-foreground">Electricity</div>
@@ -207,7 +207,7 @@ export default async function DashboardPage() {
 
             <Link
               href="/dashboard/reports"
-              className="rounded-lg border p-3 hover:bg-muted/50 transition-colors text-center space-y-1"
+              className="rounded-lg border p-4 sm:p-4 hover:bg-muted/50 transition-colors text-center space-y-1.5"
             >
               <FileSpreadsheet className="h-5 w-5 mx-auto text-blue-600" />
               <div className="font-medium text-xs text-foreground">Excel Export</div>
@@ -232,11 +232,11 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {flatsOccupancy.map((flat) => (
             <div
               key={flat.flat_id}
-              className="rounded-xl border bg-card p-4 shadow-sm space-y-3"
+              className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm space-y-3"
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-foreground text-sm truncate">

@@ -364,7 +364,7 @@ export function TokensView({
       {/* "Waiting On Me" Alert Banner */}
       {waitingOnMeMessage && (
         <div
-          className={`flex items-start sm:items-center justify-between p-4 rounded-xl border ${waitingOnMeMessage.color}`}
+          className={`flex items-start sm:items-center justify-between p-5 sm:p-6 rounded-xl border ${waitingOnMeMessage.color}`}
         >
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-5 h-5 flex-shrink-0" />
@@ -514,7 +514,7 @@ export function TokensView({
             {filteredTokens.map((item) => (
               <div
                 key={item.booking_id}
-                className="p-4 rounded-xl border bg-card shadow-sm space-y-3"
+                className="p-5 sm:p-6 rounded-xl border bg-card shadow-sm space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>

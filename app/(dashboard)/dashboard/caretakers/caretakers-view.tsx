@@ -253,7 +253,7 @@ export function CaretakersView({
             {filteredCaretakers.map((c) => (
               <div
                 key={c.id}
-                className="p-4 rounded-xl border bg-card shadow-sm space-y-3"
+                className="p-5 sm:p-6 rounded-xl border bg-card shadow-sm space-y-3"
               >
                 <div className="flex items-start justify-between">
                   <div>

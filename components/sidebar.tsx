@@ -178,7 +178,7 @@ export function Sidebar({ profile }: SidebarProps) {
       </aside>
 
       {/* Spacer for mobile header */}
-      <div className="h-14 md:hidden" />
+      <div className="h-14 shrink-0 md:hidden" />
     </>
   );
 }

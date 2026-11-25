@@ -381,37 +381,37 @@ export function PaymentsView({
       </div>
 
       {/* Metrics Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-xl border bg-card shadow-sm">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
+        <div className="p-5 sm:p-6 rounded-xl border bg-card shadow-sm">
           <p className="text-xs text-muted-foreground font-medium">Pending Dues Total</p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-foreground">
+          <p className="text-lg sm:text-2xl font-bold mt-1 text-foreground truncate">
             {formatINR(metrics.totalPendingAmount)}
           </p>
         </div>
 
-        <div className="p-4 rounded-xl border bg-card shadow-sm">
+        <div className="p-5 sm:p-6 rounded-xl border bg-card shadow-sm">
           <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-            <AlertTriangle className="w-3.5 h-3.5" /> Overdue Demands
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> Overdue Demands
           </p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-red-600 dark:text-red-400">
+          <p className="text-lg sm:text-2xl font-bold mt-1 text-red-600 dark:text-red-400">
             {metrics.overdueCount}
           </p>
         </div>
 
-        <div className="p-4 rounded-xl border bg-card shadow-sm">
+        <div className="p-5 sm:p-6 rounded-xl border bg-card shadow-sm">
           <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
             Recent Collections
           </p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+          <p className="text-lg sm:text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400 truncate">
             {formatINR(metrics.totalCollectedThisMonth)}
           </p>
         </div>
 
-        <div className="p-4 rounded-xl border bg-card shadow-sm">
+        <div className="p-5 sm:p-6 rounded-xl border bg-card shadow-sm">
           <p className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
-            <Bell className="w-3.5 h-3.5" /> Tenants on Notice
+            <Bell className="w-3.5 h-3.5 shrink-0" /> Tenants on Notice
           </p>
-          <p className="text-xl sm:text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
+          <p className="text-lg sm:text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
             {metrics.noticeCount}
           </p>
         </div>
@@ -709,7 +709,7 @@ export function PaymentsView({
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {noticeTenants.map((b) => (
-                <div key={b.id} className="p-4 rounded-xl border bg-card shadow-sm space-y-3">
+                <div key={b.id} className="p-5 sm:p-6 rounded-xl border bg-card shadow-sm space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
                       <h4 className="font-bold text-sm">{b.client_name}</h4>
