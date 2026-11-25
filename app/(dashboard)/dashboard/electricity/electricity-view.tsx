@@ -437,11 +437,11 @@ export function ElectricityView({
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
               <select
                 value={flatFilter}
                 onChange={(e) => setFlatFilter(e.target.value)}
-                className="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full sm:w-auto rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">All Properties</option>
                 {flats.map((f) => (
@@ -454,7 +454,7 @@ export function ElectricityView({
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full sm:w-auto rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>

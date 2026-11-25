@@ -118,13 +118,13 @@ export function ClientsView({ initialClients, isAdmin }: ClientsViewProps) {
         prev.map((c) =>
           c.id === editingClient.id
             ? {
-                ...c,
-                full_name: editName,
-                phone1: editPhone1,
-                phone2: editPhone2 || null,
-                emergency_contact_name: editEmergencyName || null,
-                emergency_contact_phone: editEmergencyPhone || null,
-              }
+              ...c,
+              full_name: editName,
+              phone1: editPhone1,
+              phone2: editPhone2 || null,
+              emergency_contact_name: editEmergencyName || null,
+              emergency_contact_phone: editEmergencyPhone || null,
+            }
             : c
         )
       );
@@ -163,25 +163,23 @@ export function ClientsView({ initialClients, isAdmin }: ClientsViewProps) {
       </div>
 
       {/* Filter Tabs & Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border bg-card p-5 sm:p-6 shadow-sm">
-        <div className="flex items-center gap-2 border-b sm:border-b-0 pb-2 sm:pb-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border bg-card p-4 sm:p-6 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 border-b sm:border-b-0 pb-2 sm:pb-0">
           <button
             onClick={() => setActiveTab("all")}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-              activeTab === "all"
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${activeTab === "all"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted"
-            }`}
+              }`}
           >
             All Clients ({clients.length})
           </button>
           <button
             onClick={() => setActiveTab("incomplete")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-              activeTab === "incomplete"
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${activeTab === "incomplete"
                 ? "bg-amber-600 text-white shadow-sm"
                 : "text-muted-foreground hover:bg-muted"
-            }`}
+              }`}
           >
             <AlertCircle className="h-3.5 w-3.5" />
             Incomplete Profiles ({incompleteCount})
@@ -213,8 +211,87 @@ export function ClientsView({ initialClients, isAdmin }: ClientsViewProps) {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <>
+            {/* Mobile Cards */}
+            <div className="divide-y md:hidden">
+              {filteredClients.map((client) => (
+                <div key={client.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/dashboard/clients/${client.id}`}
+                        className="font-semibold text-base text-foreground hover:text-primary hover:underline block truncate"
+                      >
+                        {client.full_name}
+                      </Link>
+                      <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                        {client.phone1}
+                        {client.phone2 ? ` • Alt: ${client.phone2}` : ""}
+                      </p>
+                    </div>
+                    {client.profile_complete ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold shrink-0">
+                        <CheckCircle2 className="h-3 w-3" /> COMPLETE
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 px-2 py-0.5 text-[10px] font-bold shrink-0">
+                        <AlertCircle className="h-3 w-3" /> INCOMPLETE
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/40 p-3 text-xs">
+                    <div>
+                      <span className="text-muted-foreground block">Assigned Bed</span>
+                      {client.flat_name ? (
+                        <span className="font-medium text-foreground">
+                          {client.flat_name} • Rm {client.room_no} ({client.bed_label})
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground italic">No active bed</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Aadhaar</span>
+                      {client.aadhaar_last4 ? (
+                        <span className="inline-flex items-center gap-1 font-mono font-medium text-foreground">
+                          <Shield className="h-3 w-3 text-emerald-600 shrink-0" />
+                          •••• {client.aadhaar_last4}
+                        </span>
+                      ) : (
+                        <span className="text-destructive font-medium">Missing</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 text-xs">
+                    <span className="text-muted-foreground">
+                      Onboarded {formatDateIST(client.created_at)}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/dashboard/clients/${client.id}`}
+                        className="rounded border px-2.5 py-1 font-semibold text-primary hover:bg-primary/10"
+                      >
+                        View Profile
+                      </Link>
+                      {isAdmin && (
+                        <button
+                          onClick={() => openEditModal(client)}
+                          className="inline-flex items-center gap-1 rounded border px-2.5 py-1 font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                          <Edit2 className="h-3 w-3" /> Edit
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
               <thead className="border-b bg-muted/40 uppercase font-semibold text-muted-foreground">
                 <tr>
                   <th className="px-5 py-3">Client</th>
@@ -325,7 +402,8 @@ export function ClientsView({ initialClients, isAdmin }: ClientsViewProps) {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
 

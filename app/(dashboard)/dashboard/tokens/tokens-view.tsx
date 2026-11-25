@@ -388,11 +388,10 @@ export function TokensView({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <button
           onClick={() => setStatusFilter("all")}
-          className={`p-3 rounded-lg border text-left transition-all ${
-            statusFilter === "all"
+          className={`p-3 rounded-lg border text-left transition-all ${statusFilter === "all"
               ? "bg-primary/10 border-primary shadow-sm"
               : "bg-card hover:bg-muted/50"
-          }`}
+            }`}
         >
           <p className="text-xs text-muted-foreground">All Tokens</p>
           <p className="text-xl font-bold mt-1">{counts.total}</p>
@@ -400,11 +399,10 @@ export function TokensView({
 
         <button
           onClick={() => setStatusFilter("pending_noc")}
-          className={`p-3 rounded-lg border text-left transition-all ${
-            statusFilter === "pending_noc"
+          className={`p-3 rounded-lg border text-left transition-all ${statusFilter === "pending_noc"
               ? "bg-amber-500/15 border-amber-500 shadow-sm"
               : "bg-card hover:bg-muted/50"
-          }`}
+            }`}
         >
           <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">Pending NOC</p>
           <p className="text-xl font-bold mt-1 text-amber-800 dark:text-amber-300">
@@ -414,11 +412,10 @@ export function TokensView({
 
         <button
           onClick={() => setStatusFilter("noc_hold")}
-          className={`p-3 rounded-lg border text-left transition-all ${
-            statusFilter === "noc_hold"
+          className={`p-3 rounded-lg border text-left transition-all ${statusFilter === "noc_hold"
               ? "bg-orange-500/15 border-orange-500 shadow-sm"
               : "bg-card hover:bg-muted/50"
-          }`}
+            }`}
         >
           <p className="text-xs text-orange-700 dark:text-orange-400 font-medium">NOC On Hold</p>
           <p className="text-xl font-bold mt-1 text-orange-800 dark:text-orange-300">
@@ -428,11 +425,10 @@ export function TokensView({
 
         <button
           onClick={() => setStatusFilter("noc_cleared")}
-          className={`p-3 rounded-lg border text-left transition-all ${
-            statusFilter === "noc_cleared"
+          className={`p-3 rounded-lg border text-left transition-all ${statusFilter === "noc_cleared"
               ? "bg-blue-500/15 border-blue-500 shadow-sm"
               : "bg-card hover:bg-muted/50"
-          }`}
+            }`}
         >
           <p className="text-xs text-blue-700 dark:text-blue-400 font-medium">NOC Cleared</p>
           <p className="text-xl font-bold mt-1 text-blue-800 dark:text-blue-300">
@@ -442,11 +438,10 @@ export function TokensView({
 
         <button
           onClick={() => setStatusFilter("active")}
-          className={`p-3 rounded-lg border text-left transition-all ${
-            statusFilter === "active"
+          className={`p-3 rounded-lg border text-left transition-all ${statusFilter === "active"
               ? "bg-emerald-500/15 border-emerald-500 shadow-sm"
               : "bg-card hover:bg-muted/50"
-          }`}
+            }`}
         >
           <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Moved In</p>
           <p className="text-xl font-bold mt-1 text-emerald-800 dark:text-emerald-300">
@@ -456,11 +451,10 @@ export function TokensView({
 
         <button
           onClick={() => setStatusFilter("rejected")}
-          className={`p-3 rounded-lg border text-left transition-all ${
-            statusFilter === "rejected"
+          className={`p-3 rounded-lg border text-left transition-all ${statusFilter === "rejected"
               ? "bg-red-500/15 border-red-500 shadow-sm"
               : "bg-card hover:bg-muted/50"
-          }`}
+            }`}
         >
           <p className="text-xs text-red-700 dark:text-red-400 font-medium">Rejected</p>
           <p className="text-xl font-bold mt-1 text-red-800 dark:text-red-300">
@@ -482,11 +476,11 @@ export function TokensView({
           />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <select
             value={flatFilter}
             onChange={(e) => setFlatFilter(e.target.value)}
-            className="px-3 py-2 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full sm:w-auto px-3 py-2 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="all">All Properties</option>
             {flats.map((f) => (
@@ -1052,7 +1046,7 @@ export function TokensView({
                   <strong>Property:</strong> {nocModalItem.flat_name} — Room {nocModalItem.room_no}, Bed {nocModalItem.bed_label}
                 </p>
                 <p>
-                  <strong>Token Advance:</strong> {formatINR(nocModalItem.token_amount)} • 
+                  <strong>Token Advance:</strong> {formatINR(nocModalItem.token_amount)} •
                   <strong> Agreed Rent:</strong> {formatINR(nocModalItem.agreed_rent)}/mo
                 </p>
               </div>
@@ -1061,11 +1055,10 @@ export function TokensView({
                 <label className="text-xs font-semibold block mb-2">Review Decision *</label>
                 <div className="grid grid-cols-3 gap-2">
                   <label
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer text-center transition-all ${
-                      nocStatus === "cleared"
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer text-center transition-all ${nocStatus === "cleared"
                         ? "bg-blue-500/15 border-blue-500 font-bold text-blue-700 dark:text-blue-300"
                         : "hover:bg-muted/50"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -1080,11 +1073,10 @@ export function TokensView({
                   </label>
 
                   <label
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer text-center transition-all ${
-                      nocStatus === "hold"
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer text-center transition-all ${nocStatus === "hold"
                         ? "bg-orange-500/15 border-orange-500 font-bold text-orange-700 dark:text-orange-300"
                         : "hover:bg-muted/50"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -1099,11 +1091,10 @@ export function TokensView({
                   </label>
 
                   <label
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer text-center transition-all ${
-                      nocStatus === "rejected"
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer text-center transition-all ${nocStatus === "rejected"
                         ? "bg-red-500/15 border-red-500 font-bold text-red-700 dark:text-red-300"
                         : "hover:bg-muted/50"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -1137,8 +1128,8 @@ export function TokensView({
                     nocStatus === "cleared"
                       ? "e.g. Identity verified via Aadhaar and employment letter confirmed."
                       : nocStatus === "hold"
-                      ? "e.g. Address proof mismatch. Waiting for revised electricity bill."
-                      : "e.g. Failed background check or criminal verification."
+                        ? "e.g. Address proof mismatch. Waiting for revised electricity bill."
+                        : "e.g. Failed background check or criminal verification."
                   }
                   value={nocRemarks}
                   onChange={(e) => setNocRemarks(e.target.value)}

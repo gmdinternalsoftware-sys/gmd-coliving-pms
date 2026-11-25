@@ -192,7 +192,7 @@ export function ProfileClient({
 
         {/* Current Bed Chip */}
         {activeBooking ? (
-          <div className="rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/40 p-3 text-right">
+          <div className="w-full sm:w-auto rounded-md bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/40 p-3 text-left sm:text-right">
             <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">
               Active Tenancy
             </span>
@@ -430,8 +430,36 @@ export function ProfileClient({
                 No payment receipts found for this client.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <>
+                {/* Mobile Payment Cards */}
+                <div className="divide-y md:hidden">
+                  {payments.map((p) => (
+                    <div key={p.id} className="p-4 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-muted uppercase">
+                          {p.type}
+                        </span>
+                        <span className="text-base font-bold text-foreground">
+                          {formatINR(Number(p.amount))}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>{formatDateIST(p.paid_on)}</span>
+                        <span className="uppercase font-mono">{p.mode || "—"}</span>
+                      </div>
+                      {(p.reference || p.notes) && (
+                        <div className="rounded bg-muted/40 p-2 text-[11px] text-muted-foreground">
+                          {p.reference && <span className="font-mono font-semibold text-foreground mr-2">{p.reference}</span>}
+                          <span>{p.notes}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-xs">
                   <thead className="border-b bg-muted/40 uppercase font-semibold text-muted-foreground">
                     <tr>
                       <th className="px-5 py-3">Paid On</th>
@@ -470,7 +498,8 @@ export function ProfileClient({
                     ))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -479,6 +508,41 @@ export function ProfileClient({
       {/* TAB 3: BOOKING HISTORY */}
       {tab === "history" && (
         <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
+          <div className="divide-y md:hidden">
+            {previousBookings.map((b) => (
+              <div key={b.id} className="p-4 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-foreground">
+                    {b.flat_name} • Room {b.room_no} • Bed {b.bed_label}
+                  </span>
+                  <span className="uppercase font-semibold text-[11px] rounded bg-muted px-2 py-0.5">
+                    {b.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-muted-foreground">
+                  <div>
+                    <span className="block text-[10px]">Move-In</span>
+                    <span className="font-medium text-foreground">
+                      {b.move_in_date ? formatDateIST(b.move_in_date) : "—"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px]">Move-Out</span>
+                    <span className="font-medium text-foreground">
+                      {b.move_out_date ? formatDateIST(b.move_out_date) : "—"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px]">Rent / Mo</span>
+                    <span className="font-semibold text-foreground">
+                      {formatINR(b.agreed_rent)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="border-b bg-muted/40 uppercase font-semibold text-muted-foreground">
               <tr>
@@ -511,6 +575,7 @@ export function ProfileClient({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

@@ -144,14 +144,14 @@ export function CaretakersView({
       prev.map((c) =>
         c.id === editingCaretaker.id
           ? {
-              ...c,
-              name: editName.trim(),
-              flat_id: editFlatId,
-              flat_name: flatName,
-              phone: editPhone.trim(),
-              alternate_phone: editAltPhone.trim() || null,
-              notes: editNotes.trim() || null,
-            }
+            ...c,
+            name: editName.trim(),
+            flat_id: editFlatId,
+            flat_name: flatName,
+            phone: editPhone.trim(),
+            alternate_phone: editAltPhone.trim() || null,
+            notes: editNotes.trim() || null,
+          }
           : c
       )
     );
@@ -219,11 +219,11 @@ export function CaretakersView({
           />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <select
             value={flatFilter}
             onChange={(e) => setFlatFilter(e.target.value)}
-            className="px-3 py-2 text-xs rounded-lg border bg-background"
+            className="w-full sm:w-auto px-3 py-2 text-xs rounded-lg border bg-background"
           >
             <option value="all">All Properties</option>
             {flats.map((f) => (

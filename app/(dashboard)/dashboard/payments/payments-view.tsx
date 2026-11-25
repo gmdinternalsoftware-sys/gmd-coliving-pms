@@ -421,33 +421,30 @@ export function PaymentsView({
       <div className="flex border-b">
         <button
           onClick={() => setActiveTab("dues")}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-all ${
-            activeTab === "dues"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-all ${activeTab === "dues"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           Rent Dues & Overdues
         </button>
 
         <button
           onClick={() => setActiveTab("ledger")}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-all ${
-            activeTab === "ledger"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-all ${activeTab === "ledger"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           Payment Ledger & Receipts ({recentPayments.length})
         </button>
 
         <button
           onClick={() => setActiveTab("notice")}
-          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-all ${
-            activeTab === "notice"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-all ${activeTab === "notice"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           Notice & Move-Out ({noticeTenants.length})
         </button>
@@ -467,11 +464,11 @@ export function PaymentsView({
         </div>
 
         {activeTab === "dues" && (
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-xs rounded-lg border bg-background"
+              className="w-full sm:w-auto px-3 py-2 text-xs rounded-lg border bg-background"
             >
               <option value="all">All Due Statuses</option>
               <option value="overdue">Overdue Only</option>
@@ -482,7 +479,7 @@ export function PaymentsView({
             <select
               value={flatFilter}
               onChange={(e) => setFlatFilter(e.target.value)}
-              className="px-3 py-2 text-xs rounded-lg border bg-background"
+              className="w-full sm:w-auto px-3 py-2 text-xs rounded-lg border bg-background"
             >
               <option value="all">All Properties</option>
               {flats.map((f) => (
@@ -507,8 +504,84 @@ export function PaymentsView({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-              <table className="w-full text-sm text-left">
+            <>
+              {/* Mobile Dues Cards */}
+              <div className="space-y-3 md:hidden">
+                {filteredDues.map((item) => (
+                  <div key={item.due_id} className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <Link
+                          href={`/dashboard/clients/${item.client_id}`}
+                          className="font-semibold text-base text-primary hover:underline block truncate"
+                        >
+                          {item.client_name}
+                        </Link>
+                        <p className="text-xs text-muted-foreground">{item.client_phone1}</p>
+                      </div>
+                      <div className="shrink-0">
+                        {item.calculated_status === "overdue" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300 dark:border-red-800">
+                            <AlertTriangle className="w-3 h-3" /> Overdue ({item.days_overdue}d)
+                          </span>
+                        ) : item.calculated_status === "paid" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            <CheckCircle2 className="w-3 h-3" /> Paid
+                          </span>
+                        ) : item.calculated_status === "partial" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            Partial
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                            <Clock className="w-3 h-3" /> Pending
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/40 p-3 text-xs">
+                      <div>
+                        <span className="text-muted-foreground block">Property & Bed</span>
+                        <span className="font-medium text-foreground">
+                          {item.flat_name} • Rm {item.room_no} ({item.bed_label})
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">Month / Due Date</span>
+                        <span className="font-medium text-foreground">
+                          {item.for_month} ({item.due_date})
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="text-xs">
+                        <span className="text-muted-foreground">Balance Due: </span>
+                        <span className="font-bold text-sm text-red-600 dark:text-red-400">
+                          {formatINR(item.balance_due)}
+                        </span>
+                        <span className="text-muted-foreground ml-1">
+                          / {formatINR(item.due_amount)}
+                        </span>
+                      </div>
+
+                      {item.calculated_status !== "paid" && canManagePayments && (
+                        <button
+                          onClick={() => openPaymentForDue(item)}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                        >
+                          Collect Rent
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Dues Table */}
+              <div className="hidden md:block overflow-x-auto rounded-xl border bg-card shadow-sm">
+                <table className="w-full text-sm text-left">
                 <thead className="text-xs uppercase bg-muted/60 text-muted-foreground border-b">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Tenant</th>
@@ -587,7 +660,8 @@ export function PaymentsView({
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -601,8 +675,56 @@ export function PaymentsView({
               <p className="text-sm font-semibold">No payment entries found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-              <table className="w-full text-sm text-left">
+            <>
+              {/* Mobile Ledger Cards */}
+              <div className="space-y-3 md:hidden">
+                {filteredLedger.map((item) => (
+                  <div key={item.id} className="rounded-xl border bg-card p-4 shadow-sm space-y-3 text-xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-base text-foreground">{item.client_name}</p>
+                        <p className="font-mono text-[11px] text-muted-foreground">
+                          RCP-{item.id.substring(0, 8).toUpperCase()} • {item.paid_on}
+                        </p>
+                      </div>
+                      <span className="font-bold text-base text-emerald-600 dark:text-emerald-400">
+                        {item.type === "refund" ? `-${formatINR(item.amount)}` : formatINR(item.amount)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/40 p-3">
+                      <div>
+                        <span className="text-muted-foreground block">Property & Bed</span>
+                        <span className="font-medium text-foreground">
+                          {item.flat_name} • Rm {item.room_no} ({item.bed_label})
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">Type & Mode</span>
+                        <span className="font-medium capitalize text-foreground">
+                          {item.type} • {PAYMENT_MODE_LABELS[item.mode || ""] || item.mode || "UPI"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-muted-foreground truncate max-w-[180px]">
+                        {item.reference ? `Ref: ${item.reference}` : item.for_month ? `Month: ${item.for_month}` : "Recorded payment"}
+                      </span>
+                      <button
+                        onClick={() => setReceiptPayment(item)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border hover:bg-muted transition-colors"
+                      >
+                        <Printer className="w-3.5 h-3.5" /> View Receipt
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Ledger Table */}
+              <div className="hidden md:block overflow-x-auto rounded-xl border bg-card shadow-sm">
+                <table className="w-full text-sm text-left">
                 <thead className="text-xs uppercase bg-muted/60 text-muted-foreground border-b">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Receipt / Date</th>
@@ -672,7 +794,8 @@ export function PaymentsView({
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}

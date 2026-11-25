@@ -95,7 +95,7 @@ export function ReportsView({
       const matchFlat =
         selectedFlat === "all" ||
         d.flat_name.toLowerCase() ===
-          flats.find((f) => f.id === selectedFlat)?.name.toLowerCase();
+        flats.find((f) => f.id === selectedFlat)?.name.toLowerCase();
       const matchSearch =
         search === "" ||
         d.client_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -148,14 +148,16 @@ export function ReportsView({
       </div>
 
       {/* Property Filter & Quick Export Ribbon */}
-      <div className="rounded-xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Building className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-foreground">Filter by Property:</span>
+      <div className="rounded-xl border bg-card p-4 sm:p-6 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Building className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-sm font-medium text-foreground">Filter by Property:</span>
+          </div>
           <select
             value={selectedFlat}
             onChange={(e) => setSelectedFlat(e.target.value)}
-            className="rounded-lg border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full sm:w-auto rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             <option value="all">All Properties (Consolidated)</option>
             {flats.map((f) => (
@@ -205,11 +207,10 @@ export function ReportsView({
         <button
           type="button"
           onClick={() => setActiveTab("overview")}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === "overview"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "overview"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           <Layers className="h-4 w-4" />
           Property Occupancy ({flatsOccupancy.length})
@@ -217,11 +218,10 @@ export function ReportsView({
         <button
           type="button"
           onClick={() => setActiveTab("all")}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === "all"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "all"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           <BedDouble className="h-4 w-4" />
           All Beds ({filteredBeds.length})
@@ -229,11 +229,10 @@ export function ReportsView({
         <button
           type="button"
           onClick={() => setActiveTab("occupied")}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === "occupied"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "occupied"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           <UserCheck className="h-4 w-4" />
           Occupied Residents ({filteredOccupied.length})
@@ -241,11 +240,10 @@ export function ReportsView({
         <button
           type="button"
           onClick={() => setActiveTab("vacant")}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === "vacant"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "vacant"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           <CheckCircle2 className="h-4 w-4" />
           Vacant Beds ({filteredVacant.length})
@@ -253,11 +251,10 @@ export function ReportsView({
         <button
           type="button"
           onClick={() => setActiveTab("dues")}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-            activeTab === "dues"
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === "dues"
+            ? "border-primary text-primary"
+            : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
         >
           <AlertTriangle className="h-4 w-4" />
           Dues & Overdue ({filteredDues.length})
@@ -314,13 +311,12 @@ export function ReportsView({
                     </p>
                   </div>
                   <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                      flat.occupancy_rate >= 80
-                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                        : flat.occupancy_rate >= 50
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${flat.occupancy_rate >= 80
+                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                      : flat.occupancy_rate >= 50
                         ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
                         : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                    }`}
+                      }`}
                   >
                     {flat.occupancy_rate}% Occupied
                   </span>
@@ -371,7 +367,52 @@ export function ReportsView({
       {/* Tab 2: All Beds */}
       {activeTab === "all" && (
         <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+          {/* Mobile Cards */}
+          <div className="divide-y md:hidden">
+            {filteredBeds.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                No beds match your filter.
+              </div>
+            ) : (
+              filteredBeds.map((bed) => (
+                <div key={bed.id} className="p-4 space-y-2 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-bold text-sm text-foreground">
+                        {bed.flat_name} &bull; Rm {bed.room_no}
+                      </p>
+                      <p className="text-muted-foreground">
+                        Bed <strong>{bed.bed_label}</strong> ({bed.sharing_type}-Sharing)
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                        bed.status === "occupied"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                          : bed.status === "vacant"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                          : bed.status === "reserved"
+                          ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
+                          : bed.status === "notice"
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {bed.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded bg-muted/40 p-2.5">
+                    <span className="text-foreground font-medium">
+                      {bed.tenant_name ? `${bed.tenant_name} (${bed.tenant_phone || "—"})` : "No occupant"}
+                    </span>
+                    <span className="font-bold text-foreground">{formatINR(bed.base_price)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 border-b font-semibold text-muted-foreground uppercase text-[11px]">
                 <tr>
@@ -403,17 +444,16 @@ export function ReportsView({
                       <td className="p-3 font-semibold">{formatINR(bed.base_price)}</td>
                       <td className="p-3">
                         <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                            bed.status === "occupied"
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                              : bed.status === "vacant"
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${bed.status === "occupied"
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                            : bed.status === "vacant"
                               ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
                               : bed.status === "reserved"
-                              ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
-                              : bed.status === "notice"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
+                                ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
+                                : bed.status === "notice"
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                  : "bg-gray-100 text-gray-800"
+                            }`}
                         >
                           {bed.status}
                         </span>
@@ -435,7 +475,44 @@ export function ReportsView({
       {/* Tab 3: Occupied Residents */}
       {activeTab === "occupied" && (
         <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+          {/* Mobile Cards */}
+          <div className="divide-y md:hidden">
+            {filteredOccupied.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                No active residents found.
+              </div>
+            ) : (
+              filteredOccupied.map((b) => (
+                <div key={b.id} className="p-4 space-y-2 text-xs">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-bold text-sm text-foreground">{b.tenant_name}</p>
+                      <p className="text-muted-foreground">{b.tenant_phone}</p>
+                    </div>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatINR(b.agreed_rent || 0)}/mo
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 rounded bg-muted/40 p-2.5">
+                    <div>
+                      <span className="text-muted-foreground block">Location</span>
+                      <span className="font-medium text-foreground">
+                        {b.flat_name} • Rm {b.room_no} ({b.bed_label})
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Next Due / Deposit</span>
+                      <span className="font-medium text-foreground">
+                        {b.next_rent_due || "—"} • {formatINR(b.deposit_amount || 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 border-b font-semibold text-muted-foreground uppercase text-[11px]">
                 <tr>
@@ -489,7 +566,30 @@ export function ReportsView({
       {/* Tab 4: Vacant Inventory */}
       {activeTab === "vacant" && (
         <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+          {/* Mobile Cards */}
+          <div className="divide-y md:hidden">
+            {filteredVacant.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                No vacant beds currently available.
+              </div>
+            ) : (
+              filteredVacant.map((b) => (
+                <div key={b.id} className="p-4 space-y-2 text-xs">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-bold text-sm text-foreground">{b.flat_name}</p>
+                      <p className="text-muted-foreground">
+                        Room {b.room_no} • Bed <strong>{b.bed_label}</strong> ({b.sharing_type}-Sharing)
+                      </p>
+                    </div>
+                    <span className="font-bold text-primary text-sm">{formatINR(b.base_price)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 border-b font-semibold text-muted-foreground uppercase text-[11px]">
                 <tr>
@@ -535,7 +635,54 @@ export function ReportsView({
       {/* Tab 5: Dues & Overdue */}
       {activeTab === "dues" && (
         <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+          {/* Mobile Cards */}
+          <div className="divide-y md:hidden">
+            {filteredDues.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                No outstanding dues recorded.
+              </div>
+            ) : (
+              filteredDues.map((d) => (
+                <div key={d.id} className="p-4 space-y-2 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-bold text-sm text-foreground">{d.client_name}</p>
+                      <p className="text-muted-foreground">
+                        {d.flat_name} • Room {d.room_no} • {d.client_phone}
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                        d.type === "Rent"
+                          ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
+                          : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                      }`}
+                    >
+                      {d.type}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded bg-muted/40 p-2.5">
+                    <div>
+                      <span className="text-muted-foreground block">Period: {d.for_period}</span>
+                      {d.days_overdue > 0 ? (
+                        <span className="text-red-600 font-bold">{d.days_overdue}d Overdue</span>
+                      ) : (
+                        <span className="text-muted-foreground">Due: {d.due_date}</span>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-muted-foreground block">Balance</span>
+                      <span className="font-bold text-sm text-amber-600 dark:text-amber-400">
+                        {formatINR(d.balance_due)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 border-b font-semibold text-muted-foreground uppercase text-[11px]">
                 <tr>
@@ -563,11 +710,10 @@ export function ReportsView({
                     <tr key={d.id} className="hover:bg-muted/30">
                       <td className="p-3">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                            d.type === "Rent"
-                              ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
-                              : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                          }`}
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${d.type === "Rent"
+                            ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                            }`}
                         >
                           {d.type}
                         </span>
