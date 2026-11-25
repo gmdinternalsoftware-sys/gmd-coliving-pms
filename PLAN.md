@@ -180,7 +180,7 @@ create table audit_log (
 - [x] **Phase 5** Payments and dues: monthly rent generation, pending/overdue list, receipts (PDF), deposit refund on move-out
 - [x] **Phase 6** Electricity: readings, bill calc, split, payment tracking
 - [x] **Phase 7** Reports and Excel export: dashboard, export sheets (All Beds, Occupied, Vacant, Dues)
-- [ ] **Phase 8** Hardening: audit review, role tests, backups, mobile QA, deploy, training
+- [x] **Phase 8** Hardening: audit review, role tests, backups, mobile QA, deploy, training
 
 ## 6. Open decisions (defaults used until you answer)
 | Question | Default |
